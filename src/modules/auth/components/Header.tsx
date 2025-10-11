@@ -1,5 +1,6 @@
 import React from "react";
 import AuthContext from "../context/AuthContext";
+import { FaHeartbeat } from "react-icons/fa";
 
 export const Header = () => {
     const context = React.useContext(AuthContext);
@@ -16,23 +17,12 @@ export const Header = () => {
                         className="flex items-center gap-2 cursor-pointer"
                         onClick={() => { }}
                     >
-
-                        <span className="text-2xl font-bold text-gray-900">Hora Vital</span>
+                        <FaHeartbeat className="text-2xl text-green-600" />
+                        <span className="text-2xl font-bold text-gray-900 mb-1">Hora Vital</span>
                     </div>
 
                     <nav className="flex items-center gap-6">
-                        <button
-                            onClick={() => { }}
-                            className="text-gray-600 hover:text-gray-900"
-                        >
-                            Paciente
-                        </button>
-                        <button className="text-gray-600 hover:text-gray-900">
-                            Secretario/a
-                        </button>
-                        <button className="text-gray-600 hover:text-gray-900">
-                            Administrador
-                        </button>
+
 
                         {user ? (
                             <div className="flex items-center gap-3">
