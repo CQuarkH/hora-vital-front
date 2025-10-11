@@ -9,7 +9,7 @@ function Logo() {
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => navigate('/')}
         >
-            <FaHeartbeat className="text-2xl text-green-600" />
+            <FaHeartbeat className="text-2xl text-medical-600" />
             <span className="text-2xl font-bold text-gray-900 mb-1">Hora Vital</span>
         </div>
     )
