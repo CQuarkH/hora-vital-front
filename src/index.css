@@ -1,1 +1,42 @@
 @import "tailwindcss";
+
+@theme {
+    /* Paleta Verde Principal (Medical Green) */
+    --color-medical-50: oklch(0.99 0.01 142);
+    --color-medical-100: oklch(0.97 0.03 142);
+    --color-medical-200: oklch(0.93 0.06 142);
+    --color-medical-300: oklch(0.85 0.10 142);
+    --color-medical-400: oklch(0.72 0.13 142);
+    --color-medical-500: oklch(0.55 0.15 142);
+    --color-medical-600: oklch(0.45 0.15 142);
+    --color-medical-700: oklch(0.38 0.13 142);
+    --color-medical-800: oklch(0.30 0.10 142);
+    --color-medical-900: oklch(0.22 0.07 142);
+    --color-medical-950: oklch(0.15 0.04 142);
+
+    /* Paleta Verde Acento (Lime Green) */
+    --color-lime-50: oklch(0.99 0.02 85);
+    --color-lime-100: oklch(0.96 0.05 85);
+    --color-lime-200: oklch(0.92 0.09 85);
+    --color-lime-300: oklch(0.87 0.13 85);
+    --color-lime-400: oklch(0.80 0.15 85);
+    --color-lime-500: oklch(0.75 0.15 85);
+    --color-lime-600: oklch(0.65 0.14 85);
+    --color-lime-700: oklch(0.52 0.12 85);
+    --color-lime-800: oklch(0.42 0.10 85);
+    --color-lime-900: oklch(0.32 0.07 85);
+    --color-lime-950: oklch(0.22 0.04 85);
+
+    /* Paleta Verde Esmeralda (Emerald - alternativa) */
+    --color-emerald-50: oklch(0.99 0.01 155);
+    --color-emerald-100: oklch(0.96 0.04 155);
+    --color-emerald-200: oklch(0.91 0.08 155);
+    --color-emerald-300: oklch(0.83 0.12 155);
+    --color-emerald-400: oklch(0.70 0.15 155);
+    --color-emerald-500: oklch(0.58 0.16 155);
+    --color-emerald-600: oklch(0.48 0.15 155);
+    --color-emerald-700: oklch(0.40 0.13 155);
+    --color-emerald-800: oklch(0.32 0.10 155);
+    --color-emerald-900: oklch(0.25 0.07 155);
+    --color-emerald-950: oklch(0.18 0.04 155);
+}

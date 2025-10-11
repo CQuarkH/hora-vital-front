@@ -1,9 +1,12 @@
 import React from "react";
 import AuthContext from "../context/AuthContext";
 import { FaHeartbeat } from "react-icons/fa";
+import { useNavigate } from "react-router";
 
 export const Header = () => {
     const context = React.useContext(AuthContext);
+    const navigate = useNavigate();
+
     if (!context) {
         throw new Error('Header debe ser usado dentro de un AuthProvider');
     }
@@ -15,7 +18,7 @@ export const Header = () => {
                 <div className="flex justify-between items-center py-4">
                     <div
                         className="flex items-center gap-2 cursor-pointer"
-                        onClick={() => { }}
+                        onClick={() => navigate('/')}
                     >
                         <FaHeartbeat className="text-2xl text-green-600" />
                         <span className="text-2xl font-bold text-gray-900 mb-1">Hora Vital</span>
@@ -44,7 +47,7 @@ export const Header = () => {
                             </div>
                         ) : (
                             <button
-                                onClick={() => { }}
+                                onClick={() => navigate('/login')}
                                 className="px-4 py-2 text-sm text-white bg-green-700 rounded-lg hover:bg-green-800"
                             >
                                 Iniciar Sesión
