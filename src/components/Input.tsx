@@ -1,16 +1,18 @@
 import React from "react";
 import clsx from "clsx";
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
     label?: string;
     error?: string;
     helperText?: string;
+    formatter?: (value: string) => string;
+    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 /**
- * Input reutilizable con soporte para label, validación y estilos consistentes.
+ * Input reutilizable con soporte para label, validación, formateo y estilos consistentes.
  */
-export const Input: React.FC<InputProps> = ({
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(({
     label,
     type = "text",
     placeholder,
@@ -18,8 +20,20 @@ export const Input: React.FC<InputProps> = ({
     helperText,
     className,
     disabled,
+    formatter,
+    onChange,
     ...props
-}) => {
+}, ref) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (formatter) {
+            const formatted = formatter(e.target.value);
+            e.target.value = formatted;
+        }
+        if (onChange) {
+            onChange(e);
+        }
+    };
+
     return (
         <div className="flex flex-col gap-2 items-start w-full">
             {label && (
@@ -32,9 +46,11 @@ export const Input: React.FC<InputProps> = ({
             )}
 
             <input
+                ref={ref}
                 type={type}
                 placeholder={placeholder}
                 disabled={disabled}
+                onChange={handleChange}
                 className={clsx(
                     "p-2 w-full border-b outline-none transition-colors duration-200",
                     error
@@ -59,36 +75,4 @@ export const Input: React.FC<InputProps> = ({
             )}
         </div>
     );
-};
-
-// Ejemplo de uso
-export default function App() {
-    return (
-        <div className="p-8 max-w-md mx-auto space-y-6">
-            <Input
-                label="Input Normal"
-                placeholder="Escribe algo..."
-            />
-
-            <Input
-                label="Input Disabled"
-                placeholder="No puedes editar esto"
-                disabled
-                value="Texto deshabilitado"
-            />
-
-            <Input
-                label="Con Error"
-                error="Este campo es requerido"
-                placeholder="Campo con error"
-            />
-
-            <Input
-                label="Disabled con Error"
-                error="Error en campo deshabilitado"
-                disabled
-                value="Campo deshabilitado con error"
-            />
-        </div>
-    );
-}
+});

@@ -5,6 +5,7 @@ import { Input } from "../../components/Input"
 import BackToHome from "../../components/BackToHome"
 import { useAuth } from "../../context/AuthContext"
 import { useState } from "react"
+import { formatRUT } from "../../utils/formatters"
 
 interface LoginFormValues {
     rut: string
@@ -56,6 +57,7 @@ function LoginPage() {
                             label="RUT"
                             placeholder="Ej. 12.345.678-9"
                             error={errors.rut?.message}
+                            formatter={formatRUT}
                             {...register("rut", {
                                 required: "El RUT es obligatorio",
                                 pattern: {

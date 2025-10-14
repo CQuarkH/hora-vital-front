@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { CiUser, CiMail } from "react-icons/ci";
 import { Input } from "../../components/Input";
 import AuthContext from "../../context/AuthContext";
+import { formatPhoneNumber } from "../../utils/formatters";
 
 interface ProfileFormData {
     firstName: string;
@@ -159,6 +160,7 @@ export default function ProfilePage() {
                         {...register("phone", {
                             required: "El teléfono es requerido"
                         })}
+                        formatter={formatPhoneNumber}
                         disabled={!isEditing}
                         error={errors.phone?.message}
                     />

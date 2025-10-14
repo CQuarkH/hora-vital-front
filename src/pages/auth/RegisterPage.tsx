@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import Logo from "../../layouts/Logo"
 import { Input } from "../../components/Input"
 import { useAuth } from "../../context/AuthContext"
+import { formatPhoneNumber, formatRUT } from "../../utils/formatters"
 
 interface RegisterFormValues {
     firstName: string
@@ -74,6 +75,7 @@ function RegisterPage() {
                             <Input
                                 label="RUT"
                                 placeholder="Ej. 12.345.678-9"
+                                formatter={formatRUT}
                                 error={errors.rut?.message}
                                 {...register("rut", {
                                     required: "El RUT es obligatorio",
@@ -114,6 +116,7 @@ function RegisterPage() {
                                 label="Teléfono"
                                 placeholder="Ej. +56 9 1234 5678"
                                 error={errors.phone?.message}
+                                formatter={formatPhoneNumber}
                                 {...register("phone", {
                                     required: "El teléfono es obligatorio",
                                 })}
