@@ -1,40 +1,103 @@
+import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import Logo from "../../layouts/Logo"
 import { Input } from "../../components/Input"
-import BackToHome from "../../components/BackToHome";
+import BackToHome from "../../components/BackToHome"
+import { useAuth } from "../../context/AuthContext"
+import { useState } from "react"
+
+interface LoginFormValues {
+    rut: string
+    password: string
+}
 
 function LoginPage() {
     const navigate = useNavigate()
+    const [error, setError] = useState<string | null>(null)
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<LoginFormValues>()
+    const { login } = useAuth();
+
+    const onSubmit = async (data: LoginFormValues) => {
+        try {
+            const response = await login(data);
+            if (response.success) {
+                navigate('/home');
+            } else {
+                alert(response.error);
+            }
+
+        } catch (err) {
+            setError("Error al iniciar sesión. Por favor, verifica tus credenciales.")
+        }
+    }
+
     return (
         <div className="flex flex-col h-screen w-full justify-center items-center text-sm">
             <div className="flex flex-col gap-6 text-center w-full max-w-2xl">
                 <div className="flex w-full justify-center">
                     <Logo />
                 </div>
-                <div className="flex flex-col bg-medical-50 border border-medical-200 shadow-sm p-8 rounded-xl gap-8 text-sm text-medical-900">
+
+                <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="flex flex-col bg-medical-50 border border-medical-200 shadow-sm p-8 rounded-xl gap-8 text-sm text-medical-900"
+                >
                     <div className="flex flex-col gap-2 w-full text-left">
                         <h3 className="font-bold text-lg">Iniciar Sesión</h3>
                         <p>Ingresa tus credenciales para acceder a tu cuenta.</p>
                     </div>
 
                     <div className="flex flex-col gap-6 w-full">
-                        <Input label="RUT" placeholder="Ej. 12.345.678-9" />
-                        <Input label="Contraseña" type="password" placeholder="Ej. ********" />
+                        <Input
+                            label="RUT"
+                            placeholder="Ej. 12.345.678-9"
+                            error={errors.rut?.message}
+                            {...register("rut", {
+                                required: "El RUT es obligatorio",
+                                pattern: {
+                                    value: /^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$/,
+                                    message: "Formato de RUT inválido",
+                                },
+                            })}
+                        />
+                        <Input
+                            label="Contraseña"
+                            type="password"
+                            placeholder="Ej. ********"
+                            error={errors.password?.message}
+                            {...register("password", {
+                                required: "La contraseña es obligatoria",
+                            })}
+                        />
                     </div>
-
 
                     <div className="flex flex-col gap-3 w-full">
-                        <button className="mt-4 bg-medical-700 text-white px-4 py-2 rounded-lg hover:bg-medical-800">Ingresar</button>
+                        {error && <p className="text-red-500">{error}</p>}
+                        <button
+                            type="submit"
+                            className="mt-4 bg-medical-700 text-white px-4 py-2 rounded-lg hover:bg-medical-800"
+                        >
+                            Ingresar
+                        </button>
 
                         <div className="text-sm">
-                            ¿No tienes una cuenta? <span onClick={() => navigate('/register')} className="text-medical-700 font-semibold cursor-pointer">Regístrate</span>
+                            ¿No tienes una cuenta?{" "}
+                            <span
+                                onClick={() => navigate("/register")}
+                                className="text-medical-700 font-semibold cursor-pointer"
+                            >
+                                Regístrate
+                            </span>
                         </div>
                     </div>
-                </div>
+                </form>
                 <BackToHome />
             </div>
         </div>
-
     )
 }
 

@@ -33,7 +33,7 @@ export const ProtectedRoute = ({
 
     // Si no requiere autenticación pero está autenticado (para páginas de login/register)
     if (!requireAuth && isAuthenticated()) {
-        return <Navigate to="/dashboard" replace />;
+        return <Navigate to="/home" replace />;
     }
 
     // Si se especifican roles permitidos, verificar

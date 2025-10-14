@@ -4,7 +4,8 @@ import OnboardingPage from '../pages/auth/OnboardingPage';
 import LoginPage from '../pages/auth/LoginPage';
 import MainLayout from '../layouts/MainLayout';
 import RegisterPage from '../pages/auth/RegisterPage';
-
+import HomePage from '../pages/shared/HomePage';
+import ProfilePage from '../pages/shared/ProfilePage';
 
 export const router = createBrowserRouter([
     {
@@ -35,7 +36,22 @@ export const router = createBrowserRouter([
                 path: 'unauthorized',
                 element: <div>Unauthorized Access</div>,
             },
+            {
+                path: 'home',
+                element: (
+                    <ProtectedRoute requireAuth={true}>
+                        <HomePage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'profile',
+                element: (
+                    <ProtectedRoute requireAuth={true}>
+                        <ProfilePage />
+                    </ProtectedRoute>
+                ),
+            },
         ],
     },
-
 ]);

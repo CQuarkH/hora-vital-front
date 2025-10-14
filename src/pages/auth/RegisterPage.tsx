@@ -1,72 +1,177 @@
+import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import Logo from "../../layouts/Logo"
 import { Input } from "../../components/Input"
+import { useAuth } from "../../context/AuthContext"
+
+interface RegisterFormValues {
+    firstName: string
+    lastName: string
+    rut: string
+    birthDate: string
+    email: string
+    phone: string
+    password: string
+    confirmPassword: string
+}
 
 function RegisterPage() {
     const navigate = useNavigate()
+
+    const {
+        register,
+        handleSubmit,
+        watch,
+        formState: { errors },
+    } = useForm<RegisterFormValues>()
+
+    const { register: registerUser } = useAuth();
+
+    const onSubmit = async (data: RegisterFormValues) => {
+        const response = await registerUser(data);
+        if (response.success) {
+            navigate('/home');
+        } else {
+            alert(response.error);
+        }
+    }
+
+    const password = watch("password")
+
     return (
         <div className="flex flex-col h-screen w-full justify-center items-center text-sm">
             <div className="flex flex-col gap-3 text-center w-full max-w-3xl">
                 <div className="flex w-full justify-center">
                     <Logo />
                 </div>
-                <div className="flex flex-col bg-medical-50 border border-medical-200 shadow-sm p-6 rounded-xl gap-8 text-sm text-medical-900">
-                    <div className="flex flex-col gap-2 w-full text-left">
-                        <h3 className="font-bold text-lg">Registro de Paciente</h3>
-                        <p>Ingresa tus datos personales para registrarte en el sistema</p>
-                    </div>
 
-
-                    {/* Sección de información personal */}
+                <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="flex flex-col bg-medical-50 border border-medical-200 shadow-sm p-6 rounded-xl gap-8 text-sm text-medical-900"
+                >
+                    {/* Información Personal */}
                     <div className="flex flex-col gap-6 w-full text-left">
                         <h3 className="font-semibold">Información Personal</h3>
                         <div className="flex gap-3 items-center">
-                            <Input label="Nombre" placeholder="Ej. Juan" />
-                            <Input label="Apellido" placeholder="Ej. Pérez" />
+                            <Input
+                                label="Nombre"
+                                placeholder="Ej. Juan"
+                                error={errors.firstName?.message}
+                                {...register("firstName", {
+                                    required: "El nombre es obligatorio",
+                                })}
+                            />
+                            <Input
+                                label="Apellido"
+                                placeholder="Ej. Pérez"
+                                error={errors.lastName?.message}
+                                {...register("lastName", {
+                                    required: "El apellido es obligatorio",
+                                })}
+                            />
                         </div>
                         <div className="flex gap-3 items-center">
-                            <Input label="RUT" placeholder="Ej. 12.345.678-9" />
-                            <Input label="Fecha de Nacimiento" placeholder="Ej. 01/01/2000" />
+                            <Input
+                                label="RUT"
+                                placeholder="Ej. 12.345.678-9"
+                                error={errors.rut?.message}
+                                {...register("rut", {
+                                    required: "El RUT es obligatorio",
+                                    pattern: {
+                                        value: /^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$/,
+                                        message: "Formato de RUT inválido",
+                                    },
+                                })}
+                            />
+                            <Input
+                                label="Fecha de Nacimiento"
+                                type="date"
+                                error={errors.birthDate?.message}
+                                {...register("birthDate", {
+                                    required: "La fecha de nacimiento es obligatoria",
+                                })}
+                            />
                         </div>
-
-
                     </div>
 
-                    {/* Sección de contacto */}
+                    {/* Información de Contacto */}
                     <div className="flex flex-col gap-6 w-full text-left">
                         <h3 className="font-semibold">Información de Contacto</h3>
                         <div className="flex gap-3 items-center">
-                            <Input label="Correo" placeholder="Ej. juan@ejemplo.com" />
-                            <Input label="Teléfono" placeholder="Ej. +56 9 1234 5678" />
+                            <Input
+                                label="Correo"
+                                placeholder="Ej. juan@ejemplo.com"
+                                error={errors.email?.message}
+                                {...register("email", {
+                                    required: "El correo es obligatorio",
+                                    pattern: {
+                                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                        message: "Correo inválido",
+                                    },
+                                })}
+                            />
+                            <Input
+                                label="Teléfono"
+                                placeholder="Ej. +56 9 1234 5678"
+                                error={errors.phone?.message}
+                                {...register("phone", {
+                                    required: "El teléfono es obligatorio",
+                                })}
+                            />
                         </div>
-
-
-
                     </div>
 
-                    {/* Sección de credenciales */}
+                    {/* Credenciales */}
                     <div className="flex flex-col gap-6 w-full text-left">
                         <h3 className="font-semibold">Credenciales</h3>
                         <div className="flex flex-col gap-3 items-center">
-                            <Input label="Contraseña" placeholder="Ej. ********" />
-                            <Input label="Repetir Contraseña" placeholder="Ej. ********" />
+                            <Input
+                                label="Contraseña"
+                                type="password"
+                                error={errors.password?.message}
+                                {...register("password", {
+                                    required: "La contraseña es obligatoria",
+                                    minLength: {
+                                        value: 6,
+                                        message: "Debe tener al menos 6 caracteres",
+                                    },
+                                })}
+                            />
+                            <Input
+                                label="Repetir Contraseña"
+                                type="password"
+                                error={errors.confirmPassword?.message}
+                                {...register("confirmPassword", {
+                                    required: "Debe repetir la contraseña",
+                                    validate: (value) =>
+                                        value === password ||
+                                        "Las contraseñas no coinciden",
+                                })}
+                            />
                         </div>
                     </div>
 
                     <div className="flex flex-col gap-3 w-full">
-                        <button className="mt-4 bg-medical-700 text-white px-4 py-3 rounded-lg hover:bg-green-800">Registrarse</button>
+                        <button
+                            type="submit"
+                            className="mt-4 bg-medical-700 text-white px-4 py-3 rounded-lg hover:bg-green-800"
+                        >
+                            Registrarse
+                        </button>
 
                         <div className="text-sm">
-                            ¿Ya tienes una cuenta? <span onClick={() => navigate('/login')} className="text-medical-700 font-semibold cursor-pointer">Inicia Sesión</span>
+                            ¿Ya tienes una cuenta?{" "}
+                            <span
+                                onClick={() => navigate("/login")}
+                                className="text-medical-700 font-semibold cursor-pointer"
+                            >
+                                Inicia Sesión
+                            </span>
                         </div>
                     </div>
-
-                </div>
+                </form>
             </div>
-
         </div>
-
-
     )
 }
 

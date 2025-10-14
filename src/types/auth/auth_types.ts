@@ -9,10 +9,13 @@ export interface User {
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
+    gender?: string;
+    birthDate?: string;
+    address?: string;
 }
 
 export interface LoginCredentials {
-    email: string;
+    rut: string;
     password: string;
 }
 

@@ -5,9 +5,57 @@ import type {
   AuthResponse,
   User,
   ServiceResponse,
-} from '../auth_types';
+} from '../../types/auth/auth_types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+const FAKE_TOKEN = 'fake-jwt-token-12345';
+
+// 🔹 Utilidad para crear fechas ISO
+const now = new Date().toISOString();
+
+// 🔹 Simulamos algunos usuarios de prueba
+const MOCK_USERS: Record<string, User> = {
+  admin: {
+    id: '1',
+    email: 'admin@example.com',
+    firstName: 'Admin',
+    lastName: 'User',
+    phone: '+56 9 1111 1111',
+    rut: '11.111.111-1',
+    role: 'admin',
+    isActive: true,
+    createdAt: now,
+    updatedAt: now,
+  },
+  patient: {
+    id: '2',
+    email: 'patient@example.com',
+    firstName: 'Maria',
+    lastName: 'Gonzalez',
+    phone: '+56 9 2222 2222',
+    rut: '22.222.222-2',
+    role: 'patient',
+    isActive: true,
+    createdAt: now,
+    birthDate: '1990-01-01',
+    gender: 'Femenino',
+    address: 'Calle Falsa 123, Ciudad, País',
+    updatedAt: now,
+  },
+  secretary: {
+    id: '3',
+    email: 'secretary@example.com',
+    firstName: 'Secretary',
+    lastName: 'User',
+    phone: '+56 9 3333 3333',
+    rut: '33.333.333-3',
+    role: 'secretary',
+    isActive: true,
+    createdAt: now,
+    updatedAt: now,
+  },
+};
 
 class AuthService {
   private getHeaders(includeAuth: boolean = false, token?: string): HeadersInit {
@@ -47,55 +95,71 @@ class AuthService {
 
   async login(credentials: LoginCredentials): Promise<ServiceResponse<AuthResponse['data']>> {
     try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify(credentials),
-      });
+      // Simulamos un pequeño retraso de red
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
-      return this.handleResponse<AuthResponse['data']>(response);
+      // Asignar rol según el RUT ingresado (solo para simular)
+      let user: User = MOCK_USERS.patient;
+
+      if (credentials.rut === '11.111.111-1') user = MOCK_USERS.admin;
+      else if (credentials.rut === '33.333.333-3') user = MOCK_USERS.secretary;
+
+      // Retornar respuesta exitosa
+      return {
+        success: true,
+        data: {
+          user,
+          token: FAKE_TOKEN,
+        },
+      };
     } catch (error) {
-      console.error('Error en login:', error);
+      console.error('Error simulado en login:', error);
       return {
         success: false,
-        error: 'Error de conexión con el servidor',
+        error: 'Simulated login error',
       };
     }
   }
 
   async register(userData: RegisterData): Promise<ServiceResponse<AuthResponse['data']>> {
     try {
-      const response = await fetch(`${API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify(userData),
-      });
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
-      return this.handleResponse<AuthResponse['data']>(response);
+      const newUser: User = {
+        id: String(Date.now()),
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        phone: userData.phone,
+        rut: userData.rut,
+        role: 'patient', // Todos los registros nuevos son "patient"
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      return {
+        success: true,
+        data: {
+          user: newUser,
+          token: FAKE_TOKEN,
+        },
+      };
     } catch (error) {
-      console.error('Error en registro:', error);
+      console.error('Error simulado en registro:', error);
       return {
         success: false,
-        error: 'Error de conexión con el servidor',
+        error: 'Simulated register error',
       };
     }
   }
 
   async getMe(token: string): Promise<ServiceResponse<User>> {
-    try {
-      const response = await fetch(`${API_URL}/api/auth/me`, {
-        method: 'GET',
-        headers: this.getHeaders(true, token),
-      });
-
-      return this.handleResponse<User>(response);
-    } catch (error) {
-      console.error('Error al obtener usuario:', error);
-      return {
-        success: false,
-        error: 'Error de conexión con el servidor',
-      };
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    if (token === FAKE_TOKEN) {
+      return { success: true, data: MOCK_USERS.patient };
     }
+    return { success: false, error: 'Invalid token' };
   }
 
   async updateProfile(
@@ -143,12 +207,8 @@ class AuthService {
 
   // Método para verificar si el token es válido
   async verifyToken(token: string): Promise<boolean> {
-    try {
-      const response = await this.getMe(token);
-      return response.success;
-    } catch {
-      return false;
-    }
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    return token === FAKE_TOKEN;
   }
 }
 
