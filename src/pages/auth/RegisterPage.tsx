@@ -4,6 +4,7 @@ import Logo from "../../layouts/Logo"
 import { Input } from "../../components/Input"
 import { useAuth } from "../../context/AuthContext"
 import { formatPhoneNumber, formatRUT } from "../../utils/formatters"
+import { isValidRUT } from "../../utils/validators"
 
 interface RegisterFormValues {
     firstName: string
@@ -82,7 +83,9 @@ function RegisterPage() {
                                     pattern: {
                                         value: /^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$/,
                                         message: "Formato de RUT inválido",
-                                    },
+                                    }, validate: (value) =>
+                                        isValidRUT(value) || "El RUT ingresado no es válido",
+
                                 })}
                             />
                             <Input

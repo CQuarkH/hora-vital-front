@@ -70,13 +70,13 @@ When('completo los demás campos correctamente', () => {
     cy.get('input[name="lastName"]').type('Pérez');
     cy.get('input[name="birthDate"]').type('1990-05-15');
     cy.get('input[name="email"]').type('juan@test.com');
-    cy.get('input[name="phone"]').type('+56912345678');
+    cy.get('input[name="phone"]').type('+912345678');
     cy.get('input[name="password"]').type('Test123456');
     cy.get('input[name="confirmPassword"]').type('Test123456');
 });
 
 Then('debería ver un error de formato de RUT', () => {
-    cy.contains(/formato de rut inválido/i).should('be.visible');
+    cy.contains(/no es válido/i).should('be.visible');
 });
 
 When('completo el formulario con contraseñas diferentes', (dataTable: DataTable) => {

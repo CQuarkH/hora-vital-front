@@ -11,7 +11,7 @@ Feature: Flujo completo paciente
       | rut             | 12.345.678-9            |
       | birthDate       | 1990-05-15              |
       | email           | juan.perez@test.com     |
-      | phone           | +56 9 1234 5678         |
+      | phone           | 9 1234 5678             |
       | password        | Test123456              |
       | confirmPassword | Test123456              |
     And envío el formulario de registro
