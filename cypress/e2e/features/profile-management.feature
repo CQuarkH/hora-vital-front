@@ -4,7 +4,7 @@ Feature: Gestión de perfil y preferencias
   Para mantener mis datos actualizados
 
   Background:
-    Given que estoy autenticado como "usuario@test.com" con contraseña "Test123456"
+    Given que estoy autenticado con RUT "12.345.678-9" y contraseña "Test123456"
 
   Scenario: Editar información del perfil exitosamente
     Given que estoy en la página de perfil
@@ -12,8 +12,8 @@ Feature: Gestión de perfil y preferencias
     And actualizo mi nombre a "Juan Carlos"
     And actualizo mi apellido a "Pérez González"
     And actualizo mi dirección a "Av. Principal 123, Santiago"
-    And actualizo mi teléfono a "+56 9 8765 4321"
-    And hago clic en "Guardar Cambios"
+    And actualizo mi teléfono a "+9 8765 4321"
+    And hago clic en el botón "Guardar Cambios"
     Then debería ver los campos deshabilitados nuevamente
     And debería ver mis datos actualizados en el perfil
 
@@ -21,7 +21,7 @@ Feature: Gestión de perfil y preferencias
     Given que estoy en la página de perfil
     When hago clic en el botón "Editar Perfil"
     And modifico mi nombre a "Nombre Temporal"
-    And hago clic en "Cancelar"
+    And hago clic en el botón "Cancelar"
     Then debería ver los campos deshabilitados nuevamente
     And debería ver el nombre original sin cambios
 
@@ -29,7 +29,7 @@ Feature: Gestión de perfil y preferencias
     Given que estoy en la página de perfil
     When hago clic en el botón "Editar Perfil"
     And intento cambiar mi correo a "correo-invalido"
-    And hago clic en "Guardar Cambios"
+    And hago clic en el botón "Guardar Cambios"
     Then debería ver un mensaje de error "Correo electrónico inválido"
     And los cambios no deberían guardarse
 
@@ -38,7 +38,7 @@ Feature: Gestión de perfil y preferencias
     When hago clic en el botón "Editar Perfil"
     And borro el contenido del campo de nombres
     And borro el contenido del campo de apellidos
-    And hago clic en "Guardar Cambios"
+    And hago clic en el botón "Guardar Cambios"
     Then debería ver un mensaje de error "Los nombres son requeridos"
     And debería ver un mensaje de error "Los apellidos son requeridos"
 

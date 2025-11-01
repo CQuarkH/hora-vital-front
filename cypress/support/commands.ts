@@ -9,9 +9,9 @@ declare global {
     }
 }
 
-Cypress.Commands.add('login', (email: string, password: string) => {
+Cypress.Commands.add('login', (rut: string, password: string) => {
     cy.visit('/login');
-    cy.get('input[type="email"]').type(email);
+    cy.get('input[name="rut"]').type(rut);
     cy.get('input[type="password"]').type(password);
     cy.get('button[type="submit"]').click();
 });

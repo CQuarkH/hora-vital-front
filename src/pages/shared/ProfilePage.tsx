@@ -144,7 +144,7 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Input
                         label="Correo Electrónico"
-                        type="email"
+
                         {...register("email", {
                             required: "El correo es requerido",
                             pattern: {

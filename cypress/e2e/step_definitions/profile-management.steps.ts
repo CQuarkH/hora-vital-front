@@ -4,20 +4,13 @@ import { Given, When, Then } from '@badeball/cypress-cucumber-preprocessor';
 // SETUP Y NAVEGACIÓN
 // ============================================
 
-Given('que estoy autenticado como {string} con contraseña {string}', (email: string, password: string) => {
-    // Primero hacer login
-    cy.visit('/login');
-    cy.get('input[type="email"]').type(email);
-    cy.get('input[type="password"]').type(password);
-    cy.get('button[type="submit"]').click();
-
-    // Esperar redirección
+Given('que estoy autenticado con RUT {string} y contraseña {string}', (rut: string, password: string) => {
+    cy.login(rut, password);
     cy.url().should('not.include', '/login');
 });
 
 Given('que estoy en la página de perfil', () => {
     cy.visit('/profile');
-    // Esperar a que cargue
     cy.contains('Mi Perfil').should('be.visible');
 });
 
@@ -81,7 +74,6 @@ Then('debería ver mis datos actualizados en el perfil', () => {
 });
 
 Then('debería ver el nombre original sin cambios', () => {
-    // Verificar que no se guardó "Nombre Temporal"
     cy.get('input[name="firstName"]').should('not.have.value', 'Nombre Temporal');
 });
 
@@ -90,7 +82,6 @@ Then('debería ver un mensaje de error {string}', (errorMessage: string) => {
 });
 
 Then('los cambios no deberían guardarse', () => {
-    // Verificar que sigue en modo edición
     cy.get('input[name="email"]').should('not.be.disabled');
 });
 
@@ -99,7 +90,6 @@ Then('los cambios no deberían guardarse', () => {
 // ============================================
 
 Then('el campo {string} debería estar deshabilitado', (fieldLabel: string) => {
-    // Buscar el input asociado al label
     cy.contains('label', fieldLabel)
         .parent()
         .find('input')
