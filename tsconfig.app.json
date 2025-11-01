@@ -10,7 +10,9 @@
     ],
     "module": "ESNext",
     "types": [
-      "vite/client"
+      "vite/client",
+      "jest-dom",
+      "node"
     ],
     "skipLibCheck": true,
     /* Bundler mode */
@@ -25,6 +27,11 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
