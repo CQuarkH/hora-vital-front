@@ -25,7 +25,7 @@ class UserService {
             if (!response.ok) {
                 return {
                     success: false,
-                    error: data.message || data.error?.message || `Error: ${response.status}`,
+                    error: data.message || data.error?.message || data.error || `Error: ${response.status}`,
                 };
             }
 
@@ -91,7 +91,7 @@ class UserService {
             });
 
             const result = await this.handleResponse<User>(response);
-            return result.data ? result : { success: false, error: 'Error al actualizar perfil' };
+            return (result.data && Object.keys(result.data).length > 0) ? result : { success: false, error: (result.error || 'Error desconocido') };
         } catch (error) {
             console.error('Error al actualizar perfil:', error);
             return {
