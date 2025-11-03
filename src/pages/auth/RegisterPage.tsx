@@ -5,6 +5,8 @@ import { Input } from "../../components/Input"
 import { useAuth } from "../../context/AuthContext"
 import { formatPhoneNumber, formatRUT } from "../../utils/formatters"
 import { isValidRUT } from "../../utils/validators"
+import { useState } from "react"
+import { Button } from "../../components/Button"
 
 interface RegisterFormValues {
     firstName: string
@@ -24,17 +26,31 @@ function RegisterPage() {
         register,
         handleSubmit,
         watch,
-        formState: { errors },
+        formState: { errors, isSubmitting },
     } = useForm<RegisterFormValues>()
+    const [gError, setGError] = useState<string | null>(null);
 
     const { register: registerUser } = useAuth();
 
     const onSubmit = async (data: RegisterFormValues) => {
-        const response = await registerUser(data);
-        if (response.success) {
-            navigate('/home');
-        } else {
-            alert(response.error);
+        try {
+            setGError(null)
+
+            console.log('Enviando datos de registro:', data)
+
+            await new Promise((resolve) => setTimeout(resolve, 1500)); // Simular retardo de red
+            const response = await registerUser(data)
+
+            console.log('Respuesta del registro:', response)
+
+            if (response.success) {
+                navigate('/home')
+            } else {
+                setGError(response.error || "Error al registrar usuario")
+            }
+        } catch (error: any) {
+            console.error('Error en onSubmit:', error)
+            setGError('Error inesperado al registrar usuario')
         }
     }
 
@@ -158,12 +174,14 @@ function RegisterPage() {
                     </div>
 
                     <div className="flex flex-col gap-3 w-full">
-                        <button
-                            type="submit"
-                            className="mt-4 bg-medical-700 text-white px-4 py-3 rounded-lg hover:bg-green-800"
-                        >
+                        {gError && (
+                            <div className="text-red-600 font-semibold text-xs text-center">
+                                {gError}
+                            </div>
+                        )}
+                        <Button isLoading={isSubmitting} type="submit">
                             Registrarse
-                        </button>
+                        </Button>
 
                         <div className="text-sm">
                             ¿Ya tienes una cuenta?{" "}

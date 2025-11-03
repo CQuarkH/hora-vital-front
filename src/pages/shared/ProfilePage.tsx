@@ -2,7 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { CiUser, CiMail } from "react-icons/ci";
 import { Input } from "../../components/Input";
-import AuthContext from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { formatPhoneNumber } from "../../utils/formatters";
 
 interface ProfileFormData {
@@ -14,10 +14,10 @@ interface ProfileFormData {
 }
 
 export default function ProfilePage() {
-    const context = React.useContext(AuthContext)!;
-    const { user } = context;
-
+    const { user, updateProfile } = useAuth();
     const [isEditing, setIsEditing] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [message, setMessage] = React.useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm<ProfileFormData>({
         defaultValues: {
@@ -29,15 +29,51 @@ export default function ProfilePage() {
         }
     });
 
-    const onSubmit = (data: ProfileFormData) => {
-        // Aquí harías la llamada a tu API para guardar los cambios
-        console.log("Guardando cambios:", data);
-        setIsEditing(false);
-        // TODO: Actualizar el contexto o hacer la petición al backend
+    const onSubmit = async (data: ProfileFormData) => {
+        try {
+            setIsLoading(true);
+            setMessage(null);
+
+            const result = await updateProfile({
+                firstName: data.firstName,
+                lastName: data.lastName,
+                email: data.email,
+                phone: data.phone,
+                address: data.address,
+            });
+
+            if (result.success) {
+                setMessage({ type: 'success', text: 'Perfil actualizado correctamente' });
+                setIsEditing(false);
+
+                // Actualizar formulario con datos frescos del servidor
+                reset({
+                    firstName: result.data?.firstName || data.firstName,
+                    lastName: result.data?.lastName || data.lastName,
+                    address: result.data?.address || data.address,
+                    phone: result.data?.phone || data.phone,
+                    email: result.data?.email || data.email,
+                });
+            } else {
+                // Manejo de errores específicos
+                if (result.error?.includes('409') || result.error?.toLowerCase().includes('email')) {
+                    setMessage({ type: 'error', text: 'El correo electrónico ya está en uso' });
+                } else if (result.error?.includes('401')) {
+                    setMessage({ type: 'error', text: 'Sesión expirada. Por favor, inicia sesión nuevamente' });
+                } else {
+                    setMessage({ type: 'error', text: result.error || 'Error al actualizar perfil' });
+                }
+            }
+        } catch (error: any) {
+            console.error('Error al actualizar perfil:', error);
+            setMessage({ type: 'error', text: 'Error inesperado al actualizar perfil' });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleCancel = () => {
-        // Restaurar valores originales
+        // Restaurar valores originales del usuario
         reset({
             firstName: user?.firstName || "",
             lastName: user?.lastName || "",
@@ -46,10 +82,40 @@ export default function ProfilePage() {
             email: user?.email || ""
         });
         setIsEditing(false);
+        setMessage(null);
     };
 
-    return !user ? <div className="p-8">Cargando...</div> : (
-        <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl mx-auto px-8">
+    // Auto-hide success message after 3 seconds
+    React.useEffect(() => {
+        if (message?.type === 'success') {
+            const timer = setTimeout(() => setMessage(null), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [message]);
+
+    // Sincronizar formulario con cambios en el usuario del contexto
+    React.useEffect(() => {
+        if (user && !isEditing) {
+            reset({
+                firstName: user.firstName || "",
+                lastName: user.lastName || "",
+                address: user.address || "",
+                phone: user.phone || "",
+                email: user.email || ""
+            });
+        }
+    }, [user, isEditing, reset]);
+
+    if (!user) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-gray-600">Cargando perfil...</div>
+            </div>
+        );
+    }
+
+    return (
+        <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl mx-auto px-8 py-8">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div>
@@ -72,19 +138,37 @@ export default function ProfilePage() {
                         <button
                             type="button"
                             onClick={handleCancel}
-                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition"
+                            disabled={isLoading}
+                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 bg-medical-600 text-white rounded-lg font-medium hover:bg-medical-700 transition"
+                            disabled={isLoading}
+                            className="px-4 py-2 bg-medical-600 text-white rounded-lg font-medium hover:bg-medical-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Guardar Cambios
+                            {isLoading ? 'Guardando...' : 'Guardar Cambios'}
                         </button>
                     </div>
                 )}
             </div>
+
+            {/* Mensaje de éxito/error */}
+            {message && (
+                <div
+                    className={`mb-6 p-4 rounded-lg flex items-center gap-2 ${message.type === 'success'
+                        ? 'bg-green-100 text-green-800 border border-green-200'
+                        : 'bg-red-100 text-red-800 border border-red-200'
+                        }`}
+                    role="alert"
+                >
+                    <span className="text-lg">
+                        {message.type === 'success' ? '✓' : '✕'}
+                    </span>
+                    <span>{message.text}</span>
+                </div>
+            )}
 
             {/* Información Personal */}
             <section className="mb-6 bg-medical-100 border border-medical-200 rounded-xl shadow-xs p-6">
@@ -99,12 +183,24 @@ export default function ProfilePage() {
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Input label="RUT" value={user.rut} disabled />
-                    <Input label="Fecha de Nacimiento" value={user.birthDate} disabled />
+                    <Input
+                        label="RUT"
+                        value={user.rut}
+                        disabled
+                    />
+                    <Input
+                        label="Fecha de Nacimiento"
+                        value={user.birthDate || 'No especificado'}
+                        disabled
+                    />
                     <Input
                         label="Nombres"
                         {...register("firstName", {
-                            required: "Los nombres son requeridos"
+                            required: "Los nombres son requeridos",
+                            minLength: {
+                                value: 2,
+                                message: "El nombre debe tener al menos 2 caracteres"
+                            }
                         })}
                         disabled={!isEditing}
                         error={errors.firstName?.message}
@@ -112,12 +208,20 @@ export default function ProfilePage() {
                     <Input
                         label="Apellidos"
                         {...register("lastName", {
-                            required: "Los apellidos son requeridos"
+                            required: "Los apellidos son requeridos",
+                            minLength: {
+                                value: 2,
+                                message: "El apellido debe tener al menos 2 caracteres"
+                            }
                         })}
                         disabled={!isEditing}
                         error={errors.lastName?.message}
                     />
-                    <Input label="Género" value={user.gender} disabled />
+                    <Input
+                        label="Género"
+                        value={user.gender || 'No especificado'}
+                        disabled
+                    />
                     <Input
                         label="Dirección"
                         {...register("address", {
@@ -144,7 +248,7 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Input
                         label="Correo Electrónico"
-
+                        type="email"
                         {...register("email", {
                             required: "El correo es requerido",
                             pattern: {
@@ -158,13 +262,21 @@ export default function ProfilePage() {
                     <Input
                         label="Teléfono"
                         {...register("phone", {
-                            required: "El teléfono es requerido"
+                            required: "El teléfono es requerido",
+                            pattern: {
+                                value: /^\+?56\s?9\s?\d{4}\s?\d{4}$/,
+                                message: "Formato de teléfono inválido (ej: +56 9 1234 5678)"
+                            }
                         })}
                         formatter={formatPhoneNumber}
                         disabled={!isEditing}
                         error={errors.phone?.message}
                     />
-                    <Input label="Contacto de Emergencia" value={user.phone} disabled />
+                    <Input
+                        label="Contacto de Emergencia"
+                        value={user.phone}
+                        disabled
+                    />
                 </div>
             </section>
         </form>

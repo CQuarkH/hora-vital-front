@@ -1,12 +1,20 @@
 import { createContext, useState, useContext, useEffect, type ReactNode } from 'react';
 import { authService } from '../services/auth/auth_service';
+import { userService } from '../services/user/user_service';
 import type {
     User,
     LoginCredentials,
     RegisterData,
-    UpdateProfileData,
     ServiceResponse,
 } from '../types/auth/auth_types';
+
+export interface UpdateProfileData {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+}
 
 interface AuthContextType {
     user: User | null;
@@ -24,7 +32,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// Hook personalizado para usar el contexto
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {
@@ -38,7 +45,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [token, setToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Cargar usuario desde localStorage al iniciar
     useEffect(() => {
         const initializeAuth = async () => {
             const storedToken = localStorage.getItem('token');
@@ -46,17 +52,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
             if (storedToken && storedUser) {
                 try {
-                    // Verificar que el token sigue siendo válido
-                    const isValid = await authService.verifyToken(storedToken);
-
-                    if (isValid) {
-                        setToken(storedToken);
-                        setUser(JSON.parse(storedUser));
-                    } else {
-                        // Token inválido, limpiar localStorage
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('user');
-                    }
+                    setToken(storedToken);
+                    setUser(JSON.parse(storedUser));
                 } catch (error) {
                     console.error('Error al verificar token:', error);
                     localStorage.removeItem('token');
@@ -69,7 +66,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         initializeAuth();
     }, []);
 
-    // Función de login
     const login = async (credentials: LoginCredentials): Promise<ServiceResponse<{ user: User; token: string }>> => {
         try {
             setLoading(true);
@@ -87,6 +83,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
             localStorage.setItem('token', authToken);
             localStorage.setItem('user', JSON.stringify(userData));
+
+            console.log("Setting token and user in login:", authToken, userData);
 
             setToken(authToken);
             setUser(userData);
@@ -106,7 +104,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    // Función de registro
     const register = async (userData: RegisterData): Promise<ServiceResponse<{ user: User; token: string }>> => {
         try {
             setLoading(true);
@@ -143,7 +140,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    // Función de logout
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -151,7 +147,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(null);
     };
 
-    // Función para actualizar perfil
     const updateProfile = async (profileData: UpdateProfileData): Promise<ServiceResponse<User>> => {
         try {
             if (!token) {
@@ -163,7 +158,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
             setLoading(true);
 
-            const response = await authService.updateProfile(token, profileData);
+            // Usar userService en lugar de authService
+            const response = await userService.updateProfile(token, profileData);
 
             if (!response.success || !response.data) {
                 return {
@@ -191,7 +187,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    // Función para obtener datos actualizados del usuario
     const refreshUser = async (): Promise<ServiceResponse<User>> => {
         try {
             if (!token) {
@@ -201,10 +196,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 };
             }
 
-            const response = await authService.getMe(token);
+            // Usar userService en lugar de authService
+            const response = await userService.getProfile(token);
 
             if (!response.success || !response.data) {
-                // Si el token es inválido, cerrar sesión
                 if (response.error?.includes('401') || response.error?.includes('token')) {
                     logout();
                 }
@@ -231,17 +226,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    // Verificar si el usuario está autenticado
     const isAuthenticated = (): boolean => {
         return !!token && !!user;
     };
 
-    // Verificar si el usuario tiene un rol específico
     const hasRole = (role: User['role']): boolean => {
         return user?.role === role;
     };
 
-    // Verificar si el usuario tiene alguno de los roles especificados
     const hasAnyRole = (roles: User['role'][]): boolean => {
         return !!user && roles.includes(user.role);
     };

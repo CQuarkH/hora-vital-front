@@ -14,7 +14,11 @@ export const router = createBrowserRouter([
         children: [
             {
                 index: true,
-                element: <OnboardingPage />,
+                element: (
+                    <ProtectedRoute requireAuth={false}>
+                        <OnboardingPage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: 'login',

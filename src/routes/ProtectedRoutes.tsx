@@ -14,17 +14,8 @@ export const ProtectedRoute = ({
     allowedRoles,
     requireAuth = true,
 }: ProtectedRouteProps) => {
-    const { isAuthenticated, hasAnyRole, loading } = useAuth();
+    const { isAuthenticated, hasAnyRole } = useAuth();
     const location = useLocation();
-
-    // Mostrar loading mientras se verifica la autenticación
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700"></div>
-            </div>
-        );
-    }
 
     // Si requiere autenticación y no está autenticado
     if (requireAuth && !isAuthenticated()) {
