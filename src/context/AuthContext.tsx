@@ -168,7 +168,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 };
             }
 
-            const updatedUser = response.data;
+            const updatedUser = { ...response.data, role: response.data.role.toLowerCase() as User['role'] };
+            console.log("Updated user:", updatedUser);
             localStorage.setItem('user', JSON.stringify(updatedUser));
             setUser(updatedUser);
 

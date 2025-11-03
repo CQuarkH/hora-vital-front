@@ -4,6 +4,7 @@ import { CiUser, CiMail } from "react-icons/ci";
 import { Input } from "../../components/Input";
 import { useAuth } from "../../context/AuthContext";
 import { formatPhoneNumber } from "../../utils/formatters";
+import toast from "react-hot-toast";
 
 interface ProfileFormData {
     firstName: string;
@@ -43,7 +44,7 @@ export default function ProfilePage() {
             });
 
             if (result.success) {
-                setMessage({ type: 'success', text: 'Perfil actualizado correctamente' });
+                toast.success('Perfil actualizado con éxito');
                 setIsEditing(false);
 
                 // Actualizar formulario con datos frescos del servidor
@@ -55,18 +56,11 @@ export default function ProfilePage() {
                     email: result.data?.email || data.email,
                 });
             } else {
-                // Manejo de errores específicos
-                if (result.error?.includes('409') || result.error?.toLowerCase().includes('email')) {
-                    setMessage({ type: 'error', text: 'El correo electrónico ya está en uso' });
-                } else if (result.error?.includes('401')) {
-                    setMessage({ type: 'error', text: 'Sesión expirada. Por favor, inicia sesión nuevamente' });
-                } else {
-                    setMessage({ type: 'error', text: result.error || 'Error al actualizar perfil' });
-                }
+                toast.error(result.error || 'Error al actualizar perfil');
             }
         } catch (error: any) {
             console.error('Error al actualizar perfil:', error);
-            setMessage({ type: 'error', text: 'Error inesperado al actualizar perfil' });
+            toast.error(error.message || 'Error de conexión con el servidor');
         } finally {
             setIsLoading(false);
         }
@@ -154,22 +148,6 @@ export default function ProfilePage() {
                 )}
             </div>
 
-            {/* Mensaje de éxito/error */}
-            {message && (
-                <div
-                    className={`mb-6 p-4 rounded-lg flex items-center gap-2 ${message.type === 'success'
-                        ? 'bg-green-100 text-green-800 border border-green-200'
-                        : 'bg-red-100 text-red-800 border border-red-200'
-                        }`}
-                    role="alert"
-                >
-                    <span className="text-lg">
-                        {message.type === 'success' ? '✓' : '✕'}
-                    </span>
-                    <span>{message.text}</span>
-                </div>
-            )}
-
             {/* Información Personal */}
             <section className="mb-6 bg-medical-100 border border-medical-200 rounded-xl shadow-xs p-6">
                 <div className="flex items-center gap-2 mb-3">
@@ -190,7 +168,7 @@ export default function ProfilePage() {
                     />
                     <Input
                         label="Fecha de Nacimiento"
-                        value={user.birthDate || 'No especificado'}
+                        value={user.birthDate ? new Date(user.birthDate).toLocaleDateString() : 'No especificado'}
                         disabled
                     />
                     <Input
@@ -223,6 +201,7 @@ export default function ProfilePage() {
                         disabled
                     />
                     <Input
+                        value={user.address}
                         label="Dirección"
                         {...register("address", {
                             required: "La dirección es requerida"

@@ -84,42 +84,14 @@ class UserService {
         profileData: UpdateProfilePayload
     ): Promise<ServiceResponse<User>> {
         try {
-            // Transformar firstName/lastName a name para el backend
-            const backendPayload: any = {
-                email: profileData.email,
-                phone: profileData.phone,
-                address: profileData.address,
-            };
-
-            // Combinar firstName y lastName en name
-            if (profileData.firstName && profileData.lastName) {
-                backendPayload.name = `${profileData.firstName.trim()} ${profileData.lastName.trim()}`;
-            } else if (profileData.firstName) {
-                backendPayload.name = profileData.firstName.trim();
-            }
-
-            const response = await fetch(`${API_URL}/api/profile`, {
+            const response = await fetch(`${API_URL}/api/users/profile`, {
                 method: 'PUT',
                 headers: this.getHeaders(token),
-                body: JSON.stringify(backendPayload),
+                body: JSON.stringify(profileData),
             });
 
             const result = await this.handleResponse<User>(response);
-
-            // Transformar name a firstName/lastName en la respuesta
-            if (result.success && result.data) {
-                const userData = result.data as any;
-                if (userData.name) {
-                    const [firstName, ...lastNameParts] = userData.name.split(' ');
-                    result.data = {
-                        ...userData,
-                        firstName: firstName || '',
-                        lastName: lastNameParts.join(' ') || '',
-                    };
-                }
-            }
-
-            return result;
+            return result.data ? result : { success: false, error: 'Error al actualizar perfil' };
         } catch (error) {
             console.error('Error al actualizar perfil:', error);
             return {
