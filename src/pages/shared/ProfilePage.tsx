@@ -201,7 +201,6 @@ export default function ProfilePage() {
                         disabled
                     />
                     <Input
-                        value={user.address}
                         label="Dirección"
                         {...register("address", {
                             required: "La dirección es requerida"
