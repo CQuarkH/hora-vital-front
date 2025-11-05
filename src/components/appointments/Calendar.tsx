@@ -7,7 +7,6 @@ interface CalendarProps {
     onDateChange: (date: Date) => void;
 }
 
-// Días de la semana
 const weekDays = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'];
 const monthNames = [
     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -15,7 +14,6 @@ const monthNames = [
 ];
 
 export const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateChange }) => {
-    // Usamos el día de hoy como base
     const [displayDate, setDisplayDate] = useState(selectedDate || new Date());
 
     const changeMonth = (amount: number) => {
@@ -26,20 +24,17 @@ export const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateChange }
         });
     };
 
-    // --- Lógica para generar los días del calendario ---
     const getCalendarDays = () => {
         const year = displayDate.getFullYear();
         const month = displayDate.getMonth();
         
-        const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0 = Domingo
+        const firstDayOfMonth = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
 
         const days = [];
-        // Rellenar días del mes anterior (vacíos)
         for (let i = 0; i < firstDayOfMonth; i++) {
             days.push(null);
         }
-        // Añadir días del mes actual
         for (let i = 1; i <= daysInMonth; i++) {
             days.push(new Date(year, month, i));
         }
@@ -49,7 +44,6 @@ export const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateChange }
     const calendarDays = getCalendarDays();
     const today = new Date();
 
-    // --- Funciones de ayuda para estilos ---
     const isSameDay = (d1: Date, d2: Date | null) => {
         if (!d2) return false;
         return d1.getDate() === d2.getDate() &&
@@ -59,12 +53,10 @@ export const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateChange }
 
     const isToday = (day: Date) => isSameDay(day, today);
     const isSelected = (day: Date) => isSameDay(day, selectedDate);
-    // Deshabilitar fines de semana (Sábado = 6, Domingo = 0)
     const isDisabled = (day: Date) => day.getDay() === 0 || day.getDay() === 6;
 
     return (
         <div className="p-4 bg-medical-50 border border-medical-200 rounded-xl shadow-sm">
-            {/* Header del Calendario */}
             <div className="flex justify-between items-center mb-4">
                 <button 
                     type="button"
@@ -85,14 +77,12 @@ export const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateChange }
                 </button>
             </div>
 
-            {/* Días de la semana */}
             <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 mb-2">
                 {weekDays.map((day) => (
                     <div key={day}>{day}</div>
                 ))}
             </div>
 
-            {/* Días del mes */}
             <div className="grid grid-cols-7 gap-1">
                 {calendarDays.map((day, index) => (
                     <button

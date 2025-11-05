@@ -17,6 +17,11 @@ const MOCK_DOCTORS: Record<string, string[]> = {
     "Dermatología": ["Dra. Laura Gómez"],
 };
 
+const MOCK_BLOCKED_SLOTS: { date: string; time: string }[] = [
+    { date: '2025-11-04', time: '10:00' },
+    { date: '2025-11-04', time: '14:30' },
+];
+
 // Función simulada de API para "consultar horarios disponibles"
 const fetchAvailability = (doctorId: string, date: Date): Promise<TimeSlot[]> => {
     console.log(`Simulando fetch de disponibilidad para Dr. ${doctorId} en ${date.toDateString()}`);
@@ -59,7 +64,20 @@ export default function BookAppointmentPage() {
             setTime(null);
 
             fetchAvailability(doctor, selectedDate).then(slots => {
-                setAvailableSlots(slots);
+                const y = selectedDate.getFullYear();
+                const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                const d = String(selectedDate.getDate()).padStart(2, '0');
+                const selectedKey = `${y}-${m}-${d}`;
+
+                const merged = slots.map(s => {
+                    const isBlocked = MOCK_BLOCKED_SLOTS.some(b => b.date === selectedKey && b.time === s.time);
+                    return {
+                        ...s,
+                        available: isBlocked ? false : s.available
+                    };
+                });
+
+                setAvailableSlots(merged);
                 setIsLoadingSlots(false);
             });
         }
