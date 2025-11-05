@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoutes';
 import OnboardingPage from '../pages/auth/OnboardingPage';
 import LoginPage from '../pages/auth/LoginPage';
@@ -9,40 +9,20 @@ import ProfilePage from '../pages/shared/ProfilePage';
 import BookAppointmentPage from '../pages/patient/BookAppointmentPage';
 import MyAppointmentsPage from '../pages/patient/MyAppointmentsPage';
 import NotificationsPage from '../pages/patient/NotificationsPage';
+import AppointmentConfirmationPage from '../pages/patient/AppointmentConfirmationPage';
+import AppointmentDetailPage from '../pages/patient/AppointmentDetailPage';
 
 export const router = createBrowserRouter([
     {
         path: '/',
         element: <MainLayout />,
         children: [
-            {
-                index: true,
-                element: <OnboardingPage />,
-            },
-            {
-                path: 'login',
-                element: (
-                    <ProtectedRoute requireAuth={false}>
-                        <LoginPage />
-                    </ProtectedRoute>
-                ),
-            },
-            {
-                path: 'register',
-                element: (
-                    <ProtectedRoute requireAuth={false}>
-                        <RegisterPage />
-                    </ProtectedRoute>
-                ),
-            },
-            {
-                path: 'unauthorized',
-                element: <div>Unauthorized Access</div>,
-            },
+            { index: true, element: <Navigate to="home" replace /> },
+
             {
                 path: 'home',
                 element: (
-                    <ProtectedRoute requireAuth={true}>
+                    <ProtectedRoute requireAuth={true} allowedRoles={['patient','secretary','admin']}>
                         <HomePage />
                     </ProtectedRoute>
                 ),
@@ -75,7 +55,7 @@ export const router = createBrowserRouter([
                 path: 'appointments/:id',
                 element: (
                     <ProtectedRoute requireAuth={true} allowedRoles={['patient']}>
-                        <MyAppointmentsPage /> 
+                        <AppointmentDetailPage /> 
                     </ProtectedRoute>
                 ),
             },
@@ -87,6 +67,40 @@ export const router = createBrowserRouter([
                     </ProtectedRoute>
                 ),
             },
+            {
+                path: 'appointment-confirmation',
+                element: (
+                    <ProtectedRoute requireAuth={true} allowedRoles={['patient']}>
+                        <AppointmentConfirmationPage />
+                    </ProtectedRoute>
+                ),
+            },
         ],
     },
+    {
+        path: '/login',
+        element: (
+            <ProtectedRoute requireAuth={false}>
+                <LoginPage />
+            </ProtectedRoute>
+        ),
+    },
+    {
+        path: '/register',
+        element: (
+            <ProtectedRoute requireAuth={false}>
+                <RegisterPage />
+            </ProtectedRoute>
+        ),
+    },
+    {
+        path: '/onboarding',
+        element: (
+            <ProtectedRoute requireAuth={false}>
+                <OnboardingPage />
+            </ProtectedRoute>
+        ),
+    },
+
+    { path: '*', element: <Navigate to="/home" replace /> },
 ]);
