@@ -15,6 +15,8 @@ import ScheduleManagementPage from '../pages/secretary/ScheduleManagementPage';
 import AdminPatientsPage from '../pages/secretary/AdminPatientsPage';
 import AdminSettingsPage from '../pages/secretary/AdminSettingsPage';
 import CreateAppointmentPage from '../pages/secretary/CreateAppointmentPage';
+import CreateUserPage from '../pages/admin/CreateUserPage';
+import RoleManagementPage from '../pages/admin/RoleManagementPage';
 
 export const router = createBrowserRouter([
     {
@@ -96,6 +98,22 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute requireAuth={true} allowedRoles={['secretary','admin']}>
                         <CreateAppointmentPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'admin-create-user',
+                element: (
+                    <ProtectedRoute requireAuth={true} allowedRoles={['admin']}>
+                        <CreateUserPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'admin-roles',
+                element: (
+                    <ProtectedRoute requireAuth={true} allowedRoles={['admin']}>
+                        <RoleManagementPage />
                     </ProtectedRoute>
                 ),
             },
