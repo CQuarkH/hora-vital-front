@@ -5,14 +5,9 @@ import { AdminStatCard } from '../../components/admin/AdminStatCard';
 import { UserListRow } from '../../components/admin/UserListRow';
 import type { SystemUser } from '../../components/admin/UserListRow';
 import clsx from 'clsx';
-
-import { 
-    HiOutlineUsers, 
-    HiOutlineShieldCheck, 
-    HiOutlineHeart, 
-    HiOutlineChartBar,
-    HiOutlineSearch
-} from 'react-icons/hi';
+import { HiOutlineUsers, HiOutlineShieldCheck, HiOutlineHeart, HiOutlineChartBar, HiOutlineSearch } from 'react-icons/hi';
+import { EditUserModal } from '../../components/admin/EditUserModal';
+import { DeleteConfirmationModal } from '../../components/admin/DeleteConfirmationModal';
 
 // --- DATOS DE EJEMPLO (MOCK) ---
 const MOCK_USERS_DATA: SystemUser[] = [
@@ -39,24 +34,40 @@ export default function AdminHomePage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('Todos');
 
+    const [users, setUsers] = useState<SystemUser[]>(MOCK_USERS_DATA);
+    const [selectedUser, setSelectedUser] = useState<SystemUser | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
     const filteredUsers = useMemo(() => {
-        return MOCK_USERS_DATA
-            .filter(u => 
-                roleFilter === 'Todos' || u.role === roleFilter
-            )
+        return users
+            .filter(u => roleFilter === 'Todos' || u.role === roleFilter)
             .filter(u => 
                 u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 u.email.toLowerCase().includes(searchTerm.toLowerCase())
             );
-    }, [searchTerm, roleFilter]);
+    }, [users, searchTerm, roleFilter]);
 
     const handleEditUser = (user: SystemUser) => {
-        console.log("Editando:", user.name);
+        setSelectedUser(user);
+        setIsEditModalOpen(true);
     };
-    
+
     const handleDeleteUser = (user: SystemUser) => {
-        console.log("Eliminando:", user.name);
-        alert(`Simulando eliminación de ${user.name}`);
+        setSelectedUser(user);
+        setIsDeleteModalOpen(true);
+    };
+
+    const onSaveEdit = (updatedUser: SystemUser) => {
+        setUsers(prev => prev.map(u => (u.id === updatedUser.id ? updatedUser : u)));
+        setIsEditModalOpen(false);
+        setSelectedUser(null);
+    };
+
+    const onConfirmDelete = (userId: string) => {
+        setUsers(prev => prev.filter(u => u.id !== userId));
+        setIsDeleteModalOpen(false);
+        setSelectedUser(null);
     };
 
     const TabButton: React.FC<{ title: string, tabId: 'users' | 'roles', to: string }> = ({ title, tabId, to }) => (
@@ -183,6 +194,20 @@ export default function AdminHomePage() {
                 </div>
             )}
             
+            {isEditModalOpen && (
+                <EditUserModal
+                    user={selectedUser}
+                    onClose={() => setIsEditModalOpen(false)}
+                    onSave={onSaveEdit}
+                />
+            )}
+            {isDeleteModalOpen && (
+                <DeleteConfirmationModal
+                    user={selectedUser}
+                    onClose={() => setIsDeleteModalOpen(false)}
+                    onConfirm={onConfirmDelete}
+                />
+            )}
         </div>
     );
 }
