@@ -1,7 +1,7 @@
 import React from "react";
 import AuthContext from "../context/AuthContext";
 import { FaHeartbeat } from "react-icons/fa";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { IoLogOutOutline } from "react-icons/io5";
 import ProfileTile from "./ProfileTile";
@@ -23,7 +23,6 @@ export const Header = () => {
                 return 'Paciente';
             case 'secretary':
                 return 'Secretaria';
-
         }
     }
 
@@ -33,7 +32,7 @@ export const Header = () => {
                 <div className="flex justify-between items-center py-4">
                     <div
                         className="flex items-center gap-2 cursor-pointer"
-                        onClick={() => navigate('/home')}
+                        onClick={() => navigate(user ? '/home' : '/')}
                     >
                         <FaHeartbeat className="text-2xl text-green-600" />
                         <span className="text-2xl font-bold text-gray-900 mb-1">Hora Vital</span>
@@ -44,30 +43,40 @@ export const Header = () => {
                     </div>
 
                     <nav className="flex items-center gap-6">
-
-
                         {user ? (
                             <div className="flex items-center gap-6">
-
                                 <IoMdNotificationsOutline className="text-2xl text-medical-900 cursor-pointer" title="Notificaciones" />
                                 <ProfileTile {...user} />
-
                                 <IoLogOutOutline
                                     className="text-2xl text-medical-900 cursor-pointer"
                                     title="Cerrar Sesión"
                                     onClick={() => {
+                                        navigate('/home');
                                         logout();
-                                        navigate('/login');
                                     }}
                                 />
                             </div>
                         ) : (
-                            <button
-                                onClick={() => navigate('/login')}
-                                className="px-4 py-2 text-sm text-white bg-green-700 rounded-lg hover:bg-green-800"
-                            >
-                                Iniciar Sesión
-                            </button>
+                            <div className="flex items-center gap-6 text-sm font-medium">
+                                <span 
+                                    onClick={() => navigate('/login/form')}
+                                    className="text-medical-700 cursor-pointer font-semibold hover:underline"
+                                >
+                                    Paciente
+                                </span>
+                                <span 
+                                    onClick={() => navigate('/login/form')}
+                                    className="text-gray-600 cursor-pointer hover:underline"
+                                >
+                                    Secretario/a
+                                </span>
+                                <span 
+                                    onClick={() => navigate('/login/form')}
+                                    className="text-gray-600 cursor-pointer hover:underline"
+                                >
+                                    Administrador
+                                </span>
+                            </div>
                         )}
                     </nav>
                 </div>

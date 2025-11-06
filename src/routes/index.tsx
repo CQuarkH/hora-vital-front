@@ -11,6 +11,9 @@ import MyAppointmentsPage from '../pages/patient/MyAppointmentsPage';
 import NotificationsPage from '../pages/patient/NotificationsPage';
 import AppointmentConfirmationPage from '../pages/patient/AppointmentConfirmationPage';
 import AppointmentDetailPage from '../pages/patient/AppointmentDetailPage';
+import ScheduleManagementPage from '../pages/secretary/ScheduleManagementPage';
+import AdminPatientsPage from '../pages/secretary/AdminPatientsPage';
+import AdminSettingsPage from '../pages/secretary/AdminSettingsPage';
 
 export const router = createBrowserRouter([
     {
@@ -22,7 +25,7 @@ export const router = createBrowserRouter([
             {
                 path: 'home',
                 element: (
-                    <ProtectedRoute requireAuth={true} allowedRoles={['patient','secretary','admin']}>
+                    <ProtectedRoute requireAuth={true}>
                         <HomePage />
                     </ProtectedRoute>
                 ),
@@ -68,6 +71,30 @@ export const router = createBrowserRouter([
                 ),
             },
             {
+                path: 'schedule-management',
+                element: (
+                    <ProtectedRoute requireAuth={true} allowedRoles={['secretary','admin']}> 
+                        <ScheduleManagementPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'admin-patients',
+                element: (
+                    <ProtectedRoute requireAuth={true} allowedRoles={['secretary','admin']}>
+                        <AdminPatientsPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'admin-settings',
+                element: (
+                    <ProtectedRoute requireAuth={true} allowedRoles={['secretary','admin']}>
+                        <AdminSettingsPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
                 path: 'appointment-confirmation',
                 element: (
                     <ProtectedRoute requireAuth={true} allowedRoles={['patient']}>
@@ -79,6 +106,14 @@ export const router = createBrowserRouter([
     },
     {
         path: '/login',
+        element: (
+            <ProtectedRoute requireAuth={false}>
+                <HomePage />
+            </ProtectedRoute>
+        ),
+    },
+    {
+        path: '/login/form',
         element: (
             <ProtectedRoute requireAuth={false}>
                 <LoginPage />
