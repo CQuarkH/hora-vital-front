@@ -5,6 +5,7 @@ import type { AdminAppointment } from '../../components/secretary/AdminAppointme
 import type { AppointmentStatus } from '../../components/appointments/AppointmentStatusBadge';
 import { Input } from '../../components/Input';
 import { HiOutlineArrowLeft, HiOutlineSearch, HiOutlineDocumentDownload } from 'react-icons/hi';
+import { CancelAppointmentModal } from '../../components/appointments/CancelAppointmentModal';
 
 // --- DATOS DE EJEMPLO (MOCK) ---
 const MOCK_ALL_APPOINTMENTS: AdminAppointment[] = [
@@ -28,8 +29,13 @@ export default function AdminAppointmentsPage() {
     const [doctorFilter, setDoctorFilter] = useState('Todos');
     const [statusFilter, setStatusFilter] = useState<AppointmentStatus | 'Todos'>('Todos');
 
+    const [appointments, setAppointments] = useState(MOCK_ALL_APPOINTMENTS);
+
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+    const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+
     const filteredAppointments = useMemo(() => {
-        return MOCK_ALL_APPOINTMENTS
+        return appointments
             .filter(cita => !dateFrom || cita.date >= dateFrom)
             .filter(cita => !dateTo || cita.date <= dateTo)
             .filter(cita => doctorFilter === 'Todos' || cita.doctorName === doctorFilter)
@@ -38,26 +44,44 @@ export default function AdminAppointmentsPage() {
                 cita.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 cita.rut.includes(searchTerm)
             );
-    }, [searchTerm, dateFrom, dateTo, doctorFilter, statusFilter]);
-    
+    }, [appointments, searchTerm, dateFrom, dateTo, doctorFilter, statusFilter]);
+
     const handleView = (id: string) => {
         console.log(`Viendo detalle ${id}`);
-    };
-    const handleEdit = (id: string) => {
-        console.log(`Editando ${id}`);
-    };
-    const handleCancel = (id: string) => {
-        console.log(`Cancelando ${id}`);
-        alert(`Simulando cancelación de cita ${id}`);
+        navigate(`/appointments/${id}`); 
     };
     
+    const handleEdit = (id: string) => {
+        console.log(`Editando ${id}`);
+        alert('Modal de Edición (aún no implementado)');
+    };
+
+    const handleCancel = (id: string) => {
+        setSelectedAppointmentId(id);
+        setIsCancelModalOpen(true);
+    };
+
+    const onConfirmCancel = (reason: string) => {
+        console.log(`Cancelando ${selectedAppointmentId} por: ${reason}`);
+        setAppointments(prev => 
+            prev.map(cita => 
+                cita.id === selectedAppointmentId 
+                ? { ...cita, status: 'Cancelada' } 
+                : cita
+            )
+        );
+        setIsCancelModalOpen(false);
+        setSelectedAppointmentId(null);
+    };
+
     const handleExport = () => {
         console.log("Exportando reportes...", filteredAppointments);
         alert("Simulando exportación de reportes...");
     };
 
     return (
-        <div className="flex flex-col gap-6">
+        <>
+            <div className="flex flex-col gap-6">
             <button 
                 onClick={() => navigate('/home')} 
                 className="flex items-center gap-1 text-sm font-medium text-medical-600 hover:text-medical-800 self-start"
@@ -150,6 +174,14 @@ export default function AdminAppointmentsPage() {
                     </p>
                 )}
             </div>
+            {isCancelModalOpen && (
+                <CancelAppointmentModal
+                    appointmentId={selectedAppointmentId ?? ''}
+                    onClose={() => { setIsCancelModalOpen(false); setSelectedAppointmentId(null); }}
+                    onConfirm={onConfirmCancel}
+                />
+            )}
         </div>
+        </>
     );
 }
