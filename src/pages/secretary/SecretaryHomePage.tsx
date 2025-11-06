@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { DashboardCard } from '../../components/dashboard/DashboardCard';
+import { useNavigate } from 'react-router-dom';
 import { TodayAppointmentRow } from '../../components/secretary/TodayAppointmentRow';
 import type { TodayAppointment } from '../../components/secretary/TodayAppointmentRow';
 import type { AppointmentStatus } from '../../components/appointments/AppointmentStatusBadge';
@@ -9,9 +9,9 @@ import {
     HiOutlineCalendar, 
     HiOutlinePlus, 
     HiOutlineUsers, 
-    HiOutlineCog,
     HiOutlineSearch,
-    HiOutlineAdjustments
+    HiOutlineAdjustments,
+    HiOutlineClipboardList
 } from 'react-icons/hi';
 
 // --- DATOS DE EJEMPLO (MOCK) ---
@@ -42,6 +42,20 @@ export default function SecretaryHomePage() {
             );
     }, [searchTerm, statusFilter]);
     
+    const AdminDashboardCard: React.FC<{ title: string, icon: React.ReactNode, to: string, description?: string }> = ({ title, icon, to, description }) => {
+        const navigateLocal = useNavigate();
+        return (
+            <button
+                onClick={() => navigateLocal(to)}
+                className="flex flex-col items-center justify-center gap-2 p-6 rounded-xl bg-medical-50 border border-medical-200 shadow-sm hover:bg-medical-100 transition-all"
+            >
+                <div className="text-3xl text-medical-700">{icon}</div>
+                <span className="font-semibold text-medical-900">{title}</span>
+                {description && <span className="text-sm text-gray-600">{description}</span>}
+            </button>
+        );
+    };
+
     return (
         <div className="flex flex-col gap-8">
             <div>
@@ -54,29 +68,29 @@ export default function SecretaryHomePage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <DashboardCard
+                <AdminDashboardCard
                     title="Gestionar Agenda"
                     description="Disponibilidad médicos"
                     icon={<HiOutlineCalendar />}
                     to="/schedule-management"
                 />
-                <DashboardCard
+                <AdminDashboardCard
                     title="Nueva Cita"
                     description="Agendar para paciente"
                     icon={<HiOutlinePlus />}
                     to="/admin-create-appointment"
                 />
-                <DashboardCard
+                <AdminDashboardCard
                     title="Pacientes"
                     description="Buscar y gestionar"
                     icon={<HiOutlineUsers />}
                     to="/admin-patients"
                 />
-                <DashboardCard
-                    title="Configuración"
-                    description="Ajustes del sistema"
-                    icon={<HiOutlineCog />}
-                    to="/admin-settings"
+                <AdminDashboardCard
+                    title="Panel de Citas"
+                    description="Ver historial completo"
+                    icon={<HiOutlineClipboardList />}
+                    to="/admin-appointments"
                 />
             </div>
 
