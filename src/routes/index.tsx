@@ -25,11 +25,7 @@ export const router = createBrowserRouter([
 
             {
                 path: 'home',
-                element: (
-                    <ProtectedRoute requireAuth={true}>
-                        <HomePage />
-                    </ProtectedRoute>
-                ),
+                element: <HomePage />,
             },
             {
                 path: 'profile',

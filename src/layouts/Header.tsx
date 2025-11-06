@@ -47,14 +47,14 @@ export const Header = () => {
                             <div className="flex items-center gap-6">
                                 <IoMdNotificationsOutline className="text-2xl text-medical-900 cursor-pointer" title="Notificaciones" />
                                 <ProfileTile {...user} />
-                                <IoLogOutOutline
-                                    className="text-2xl text-medical-900 cursor-pointer"
-                                    title="Cerrar Sesión"
-                                    onClick={() => {
-                                        navigate('/home');
-                                        logout();
-                                    }}
-                                />
+                                    <IoLogOutOutline
+                                        className="text-2xl text-medical-900 cursor-pointer"
+                                        title="Cerrar Sesión"
+                                        onClick={() => {
+                                            logout();
+                                            setTimeout(() => navigate('/home', { replace: true }), 50);
+                                        }}
+                                    />
                             </div>
                         ) : (
                             <div className="flex items-center gap-6 text-sm font-medium">
