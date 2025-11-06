@@ -34,15 +34,14 @@ export const RoleCard: React.FC<RoleCardProps> = ({ role, onEdit, onDelete }) =>
                         <HiOutlinePencil className="h-5 w-5" />
                     </button>
                     
-                    {role.canBeDeleted && (
-                        <button 
-                            onClick={() => onDelete(role)}
-                            className="text-gray-500 hover:text-red-600" 
-                            title="Eliminar Rol"
-                        >
-                            <HiOutlineTrash className="h-5 w-5" />
-                        </button>
-                    )}
+                    <button 
+                        onClick={() => onDelete(role)}
+                        disabled={!role.canBeDeleted}
+                        className="text-gray-500 hover:text-red-600 disabled:opacity-30 disabled:cursor-not-allowed" 
+                        title={role.canBeDeleted ? "Eliminar Rol" : "No se puede eliminar este rol"}
+                    >
+                        <HiOutlineTrash className="h-5 w-5" />
+                    </button>
                 </div>
             </div>
 

@@ -10,8 +10,7 @@ import {
     HiOutlineUsers, 
     HiOutlineShieldCheck, 
     HiOutlineHeart, 
-    HiOutlineChartBar,
-    HiOutlineArrowLeft
+    HiOutlineChartBar
 } from 'react-icons/hi';
 
 // --- DATOS DE EJEMPLO (MOCK) ---
@@ -69,6 +68,7 @@ export default function RoleManagementPage() {
     };
     
     const handleDeleteRole = (role: RoleData) => {
+        if (!role.canBeDeleted) return;
         console.log("Eliminando Rol:", role.name);
         alert(`Simulando eliminación de ${role.name}`);
     };

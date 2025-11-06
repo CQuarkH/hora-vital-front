@@ -59,13 +59,11 @@ export default function AdminHomePage() {
         alert(`Simulando eliminación de ${user.name}`);
     };
 
-    const TabButton: React.FC<{ title: string, tabId: 'users' | 'roles' }> = ({ title, tabId }) => (
+    const TabButton: React.FC<{ title: string, tabId: 'users' | 'roles', to: string }> = ({ title, tabId, to }) => (
         <button
             onClick={() => {
                 setActiveTab(tabId);
-                if (tabId === 'roles') {
-                    navigate('/admin-roles');
-                }
+                navigate(to);
             }}
             className={clsx(
                 "py-3 px-6 font-semibold",
@@ -113,8 +111,8 @@ export default function AdminHomePage() {
             </div>
 
             <div className="border-b border-gray-200">
-                <TabButton title="Gestión de Usuarios" tabId="users" />
-                <TabButton title="Gestión de Roles" tabId="roles" />
+                <TabButton title="Gestión de Usuarios" tabId="users" to="/home" />
+                <TabButton title="Gestión de Roles" tabId="roles" to="/admin-roles" />
             </div>
 
             {activeTab === 'users' && (
