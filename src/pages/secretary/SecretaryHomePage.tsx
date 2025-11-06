@@ -64,7 +64,7 @@ export default function SecretaryHomePage() {
                     title="Nueva Cita"
                     description="Agendar para paciente"
                     icon={<HiOutlinePlus />}
-                    to="/book-appointment"
+                    to="/admin-create-appointment"
                 />
                 <DashboardCard
                     title="Pacientes"
