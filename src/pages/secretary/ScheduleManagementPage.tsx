@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { ScheduleDayRow } from '../../components/schedule/ScheduleDayRow';
 import type { DaySchedule } from '../../components/schedule/ScheduleDayRow';
 import { HiOutlineSave, HiOutlineCalendar, HiOutlinePlusCircle, HiOutlineTemplate } from 'react-icons/hi';
+import { useNavigate } from 'react-router-dom';
+import { SchedulePreviewModal } from '../../components/schedule/SchedulePreviewModal';
 
 // --- DATOS DE EJEMPLO (MOCK) ---
 const MOCK_DOCTORS = [
@@ -23,6 +25,7 @@ export default function ScheduleManagementPage() {
     const [selectedDoctor, setSelectedDoctor] = useState(MOCK_DOCTORS[0].id);
     const [scheduleData, setScheduleData] = useState(MOCK_INITIAL_SCHEDULE);
     const [isSaving, setIsSaving] = useState(false);
+    const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
     const handleScheduleChange = (dayName: string, newSchedule: DaySchedule) => {
         setScheduleData(prev => ({
@@ -42,7 +45,8 @@ export default function ScheduleManagementPage() {
     const selectedDoctorName = MOCK_DOCTORS.find(d => d.id === selectedDoctor)?.name || 'Doctor';
 
     return (
-        <div className="flex flex-col gap-6">
+        <>
+            <div className="flex flex-col gap-6">
             
             <div className="flex justify-between items-center">
                 <div>
@@ -115,11 +119,22 @@ export default function ScheduleManagementPage() {
                     Bloquear Horario
                 </button>
                 <div className="border-l h-5 border-gray-300"></div>
-                <button className="flex items-center gap-2 text-sm font-medium text-medical-600 hover:text-medical-800">
-                    <HiOutlineCalendar />
-                    Ver Calendario
-                </button>
+                    <button
+                        type="button"
+                        onClick={() => setIsPreviewModalOpen(true)}
+                        className="flex items-center gap-2 text-sm font-medium text-medical-600 hover:text-medical-800"
+                    >
+                        <HiOutlineCalendar />
+                        Ver Calendario (Vista Previa)
+                    </button>
             </div>
         </div>
+            {isPreviewModalOpen && (
+                <SchedulePreviewModal
+                    scheduleData={scheduleData}
+                    onClose={() => setIsPreviewModalOpen(false)}
+                />
+            )}
+        </>
     );
 }
