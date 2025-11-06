@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HiOutlineBell, HiOutlineCheckCircle } from 'react-icons/hi';
-import type { Notification } from '../types/notification/notification_types';
+import type { Notification } from '../../types/notification/notification_types';
 
 interface NotificationDropdownProps {
     notifications: Notification[];

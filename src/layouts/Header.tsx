@@ -103,13 +103,13 @@ export const Header = () => {
                             </div>
                         ) : (
                             <div className="flex items-center gap-6 text-sm font-medium">
-                                <span onClick={() => navigate('/login')} className="text-medical-700 cursor-pointer font-semibold hover:underline">
+                                <span onClick={() => navigate('/login/form')} className="text-medical-700 cursor-pointer font-semibold hover:underline">
                                     Paciente
                                 </span>
-                                <span onClick={() => navigate('/login')} className="text-gray-600 cursor-pointer hover:underline">
+                                <span onClick={() => navigate('/login/form')} className="text-gray-600 cursor-pointer hover:underline">
                                     Secretario/a
                                 </span>
-                                <span onClick={() => navigate('/login')} className="text-gray-600 cursor-pointer hover:underline">
+                                <span onClick={() => navigate('/login/form')} className="text-gray-600 cursor-pointer hover:underline">
                                     Administrador
                                 </span>
                             </div>
