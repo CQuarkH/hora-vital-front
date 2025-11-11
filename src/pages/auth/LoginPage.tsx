@@ -6,6 +6,7 @@ import BackToHome from "../../components/BackToHome"
 import { useAuth } from "../../context/AuthContext"
 import { useState } from "react"
 import { formatRUT } from "../../utils/formatters"
+import { Button } from "../../components/Button"
 
 interface LoginFormValues {
     rut: string
@@ -14,11 +15,11 @@ interface LoginFormValues {
 
 function LoginPage() {
     const navigate = useNavigate()
-    const [error, setError] = useState<string | null>(null)
+    const [error, setError] = useState<string | undefined>()
     const {
         register,
         handleSubmit,
-        formState: { errors },
+        formState: { errors, isSubmitting },
     } = useForm<LoginFormValues>()
     const { login } = useAuth();
 
@@ -28,7 +29,7 @@ function LoginPage() {
             if (response.success) {
                 navigate('/home');
             } else {
-                alert(response.error);
+                setError(response.error);
             }
 
         } catch (err) {
@@ -78,13 +79,12 @@ function LoginPage() {
                     </div>
 
                     <div className="flex flex-col gap-3 w-full">
-                        {error && <p className="text-red-500">{error}</p>}
-                        <button
-                            type="submit"
-                            className="mt-4 bg-medical-700 text-white px-4 py-2 rounded-lg hover:bg-medical-800"
-                        >
-                            Ingresar
-                        </button>
+                        {error && <div className="text-red-600 font-semibold text-xs text-center">
+                            {error}
+                        </div>}
+                        <Button isLoading={isSubmitting} type="submit">
+                            Iniciar Sesión
+                        </Button>
 
                         <div className="text-sm">
                             ¿No tienes una cuenta?{" "}

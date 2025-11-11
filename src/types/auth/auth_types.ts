@@ -26,6 +26,9 @@ export interface RegisterData {
     lastName: string;
     phone: string;
     rut: string;
+    birthDate?: string;
+    gender?: string;
+    address?: string;
 }
 
 export interface UpdateProfileData {
@@ -33,6 +36,7 @@ export interface UpdateProfileData {
     lastName?: string;
     email?: string;
     phone?: string;
+    address?: string;
 }
 
 export interface AuthResponse {

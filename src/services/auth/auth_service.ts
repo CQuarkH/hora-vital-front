@@ -1,7 +1,6 @@
 import type {
   LoginCredentials,
   RegisterData,
-  UpdateProfileData,
   AuthResponse,
   User,
   ServiceResponse,
@@ -9,65 +8,11 @@ import type {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-const FAKE_TOKEN = 'fake-jwt-token-12345';
-
-// 🔹 Utilidad para crear fechas ISO
-const now = new Date().toISOString();
-
-// 🔹 Simulamos algunos usuarios de prueba
-const MOCK_USERS: Record<string, User> = {
-  admin: {
-    id: '1',
-    email: 'admin@example.com',
-    firstName: 'Admin',
-    lastName: 'User',
-    phone: '+56 9 1111 1111',
-    rut: '11.111.111-1',
-    role: 'admin',
-    isActive: true,
-    createdAt: now,
-    updatedAt: now,
-  },
-  patient: {
-    id: '2',
-    email: 'patient@example.com',
-    firstName: 'Maria',
-    lastName: 'Gonzalez',
-    phone: '+56 9 2222 2222',
-    rut: '22.222.222-2',
-    role: 'patient',
-    isActive: true,
-    createdAt: now,
-    birthDate: '1990-01-01',
-    gender: 'Femenino',
-    address: 'Calle Falsa 123, Ciudad, País',
-    updatedAt: now,
-  },
-  secretary: {
-    id: '3',
-    email: 'secretary@example.com',
-    firstName: 'Secretary',
-    lastName: 'User',
-    phone: '+56 9 3333 3333',
-    rut: '33.333.333-3',
-    role: 'secretary',
-    isActive: true,
-    createdAt: now,
-    updatedAt: now,
-  },
-};
-
 class AuthService {
-  private getHeaders(includeAuth: boolean = false, token?: string): HeadersInit {
-    const headers: HeadersInit = {
+  private getHeaders(): HeadersInit {
+    return {
       'Content-Type': 'application/json',
     };
-
-    if (includeAuth && token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    return headers;
   }
 
   private async handleResponse<T>(response: Response): Promise<ServiceResponse<T>> {
@@ -77,7 +22,7 @@ class AuthService {
       if (!response.ok) {
         return {
           success: false,
-          error: data.error?.message || `Error: ${response.status}`,
+          error: data.message || data.error || `Error: ${response.status}`,
         };
       }
 
@@ -93,122 +38,130 @@ class AuthService {
     }
   }
 
+  /**
+   * Transformar respuesta del backend a formato del frontend
+   * Backend: { id, name, email, role }
+   * Frontend: { id, firstName, lastName, email, role, ... }
+   */
+  private transformUserFromBackend(backendUser: any): User {
+    return {
+      id: backendUser.id,
+      email: backendUser.email,
+      firstName: backendUser.firstName,
+      lastName: backendUser.lastName,
+      phone: backendUser.phone || '',
+      rut: backendUser.rut || '',
+      role: backendUser.role,
+      isActive: backendUser.isActive ?? true,
+      createdAt: backendUser.createdAt || new Date().toISOString(),
+      updatedAt: backendUser.updatedAt || new Date().toISOString(),
+      birthDate: backendUser.birthDate,
+      gender: backendUser.gender,
+      address: backendUser.address,
+    };
+  }
+
+  /**
+   * Login con RUT y contraseña
+   */
   async login(credentials: LoginCredentials): Promise<ServiceResponse<AuthResponse['data']>> {
     try {
-      // Simulamos un pequeño retraso de red
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          rut: credentials.rut,
+          password: credentials.password,
+        }),
+      });
 
-      // Asignar rol según el RUT ingresado (solo para simular)
-      let user: User = MOCK_USERS.patient;
+      const result = await this.handleResponse<{ token: string; user: any }>(response);
 
-      if (credentials.rut === '11.111.111-1') user = MOCK_USERS.admin;
-      else if (credentials.rut === '33.333.333-3') user = MOCK_USERS.secretary;
+      if (!result.success || !result.data) {
+        return {
+          success: false,
+          error: result.error || 'Error al iniciar sesión',
+        };
+      }
+      const transformedUser = this.transformUserFromBackend(result.data.user);
 
-      // Retornar respuesta exitosa
       return {
         success: true,
         data: {
-          user,
-          token: FAKE_TOKEN,
+          user: transformedUser,
+          token: result.data.token,
         },
       };
-    } catch (error) {
-      console.error('Error simulado en login:', error);
+    } catch (error: any) {
+      console.error('Error en login:', error);
       return {
         success: false,
-        error: 'Simulated login error',
+        error: error.message || 'Error de conexión con el servidor',
       };
     }
   }
 
+  /**
+   * Registro de nuevo usuario
+   */
   async register(userData: RegisterData): Promise<ServiceResponse<AuthResponse['data']>> {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(userData),
+      });
 
-      const newUser: User = {
-        id: String(Date.now()),
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        phone: userData.phone,
-        rut: userData.rut,
-        role: 'patient', // Todos los registros nuevos son "patient"
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
-      };
+      const result = await this.handleResponse<{ token: string; user: any }>(response);
+
+      if (!result.success || !result.data) {
+        return {
+          success: false,
+          error: result.error || 'Error al registrar usuario',
+        };
+      }
+
+
+      const transformedUser = this.transformUserFromBackend(result.data.user);
 
       return {
         success: true,
         data: {
-          user: newUser,
-          token: FAKE_TOKEN,
+          user: transformedUser,
+          token: result.data.token,
         },
       };
-    } catch (error) {
-      console.error('Error simulado en registro:', error);
+    } catch (error: any) {
+      console.error('Error en registro:', error);
       return {
         success: false,
-        error: 'Simulated register error',
+        error: error.message || 'Error de conexión con el servidor',
       };
     }
   }
 
-  async getMe(token: string): Promise<ServiceResponse<User>> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    if (token === FAKE_TOKEN) {
-      return { success: true, data: MOCK_USERS.patient };
-    }
-    return { success: false, error: 'Invalid token' };
-  }
-
-  async updateProfile(
-    token: string,
-    profileData: UpdateProfileData
-  ): Promise<ServiceResponse<User>> {
-    try {
-      const response = await fetch(`${API_URL}/api/users/profile`, {
-        method: 'PUT',
-        headers: this.getHeaders(true, token),
-        body: JSON.stringify(profileData),
-      });
-
-      return this.handleResponse<User>(response);
-    } catch (error) {
-      console.error('Error al actualizar perfil:', error);
-      return {
-        success: false,
-        error: 'Error de conexión con el servidor',
-      };
-    }
-  }
-
-  async changePassword(
-    token: string,
-    currentPassword: string,
-    newPassword: string
-  ): Promise<ServiceResponse<{ message: string }>> {
-    try {
-      const response = await fetch(`${API_URL}/api/users/change-password`, {
-        method: 'PUT',
-        headers: this.getHeaders(true, token),
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
-
-      return this.handleResponse<{ message: string }>(response);
-    } catch (error) {
-      console.error('Error al cambiar contraseña:', error);
-      return {
-        success: false,
-        error: 'Error de conexión con el servidor',
-      };
-    }
-  }
-
-  // Método para verificar si el token es válido
+  /**
+   * Verificar si el token es válido
+   * Nota: Esto debería hacerse en el backend, pero por ahora solo verificamos que exista
+   */
   async verifyToken(token: string): Promise<boolean> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return token === FAKE_TOKEN;
+    if (!token) return false;
+
+    try {
+      // Intentar obtener el perfil con el token
+      const response = await fetch(`${API_URL}/api/profile`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('Error al verificar token:', error);
+      return false;
+    }
   }
 }
 

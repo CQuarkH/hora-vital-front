@@ -37,7 +37,6 @@ export const formatPhoneNumber = (value: string): string => {
 
     // Teléfono fijo: XXXX XXXX (sin 9 al inicio)
     let part1 = clean.slice(0, 4);
-    let part2 = clean.slice(4, 8);
-    let part3 = clean.slice(8, 12); // opcional, por si hay extensión
-    return `+56 ${part1}${part2 ? ' ' + part2 : ''}${part3 ? ' ' + part3 : ''}`.trim();
+    let part2 = clean.slice(4, 9);
+    return `+56 ${part1}${part2 ? ' ' + part2 : ''}`.trim();
 };

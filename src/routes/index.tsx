@@ -24,11 +24,41 @@ export const router = createBrowserRouter([
         path: '/',
         element: <MainLayout />,
         children: [
-            { index: true, element: <Navigate to="home" replace /> },
-
+            {
+                index: true,
+                element: (
+                    <ProtectedRoute requireAuth={false}>
+                        <OnboardingPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'login',
+                element: (
+                    <ProtectedRoute requireAuth={false}>
+                        <LoginPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'register',
+                element: (
+                    <ProtectedRoute requireAuth={false}>
+                        <RegisterPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'unauthorized',
+                element: <div>Unauthorized Access</div>,
+            },
             {
                 path: 'home',
-                element: <HomePage />,
+                element: (
+                    <ProtectedRoute requireAuth={true}>
+                        <HomePage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: 'profile',
@@ -58,7 +88,7 @@ export const router = createBrowserRouter([
                 path: 'appointments/:id',
                 element: (
                     <ProtectedRoute requireAuth={true} allowedRoles={['patient']}>
-                        <AppointmentDetailPage /> 
+                        <AppointmentDetailPage />
                     </ProtectedRoute>
                 ),
             },
@@ -73,7 +103,7 @@ export const router = createBrowserRouter([
             {
                 path: 'schedule-management',
                 element: (
-                    <ProtectedRoute requireAuth={true} allowedRoles={['secretary','admin']}> 
+                    <ProtectedRoute requireAuth={true} allowedRoles={['secretary', 'admin']}>
                         <ScheduleManagementPage />
                     </ProtectedRoute>
                 ),
@@ -81,7 +111,7 @@ export const router = createBrowserRouter([
             {
                 path: 'admin-patients',
                 element: (
-                    <ProtectedRoute requireAuth={true} allowedRoles={['secretary','admin']}>
+                    <ProtectedRoute requireAuth={true} allowedRoles={['secretary', 'admin']}>
                         <AdminPatientsPage />
                     </ProtectedRoute>
                 ),
@@ -89,7 +119,7 @@ export const router = createBrowserRouter([
             {
                 path: 'admin-settings',
                 element: (
-                    <ProtectedRoute requireAuth={true} allowedRoles={['secretary','admin']}>
+                    <ProtectedRoute requireAuth={true} allowedRoles={['secretary', 'admin']}>
                         <AdminSettingsPage />
                     </ProtectedRoute>
                 ),
@@ -97,7 +127,7 @@ export const router = createBrowserRouter([
             {
                 path: 'admin-create-appointment',
                 element: (
-                    <ProtectedRoute requireAuth={true} allowedRoles={['secretary','admin']}>
+                    <ProtectedRoute requireAuth={true} allowedRoles={['secretary', 'admin']}>
                         <CreateAppointmentPage />
                     </ProtectedRoute>
                 ),
@@ -105,7 +135,7 @@ export const router = createBrowserRouter([
             {
                 path: 'admin-appointments',
                 element: (
-                    <ProtectedRoute requireAuth={true} allowedRoles={['secretary','admin']}>
+                    <ProtectedRoute requireAuth={true} allowedRoles={['secretary', 'admin']}>
                         <AdminAppointmentsPage />
                     </ProtectedRoute>
                 ),
@@ -135,38 +165,6 @@ export const router = createBrowserRouter([
                 ),
             },
         ],
-    },
-    {
-        path: '/login',
-        element: (
-            <ProtectedRoute requireAuth={false}>
-                <HomePage />
-            </ProtectedRoute>
-        ),
-    },
-    {
-        path: '/login/form',
-        element: (
-            <ProtectedRoute requireAuth={false}>
-                <LoginPage />
-            </ProtectedRoute>
-        ),
-    },
-    {
-        path: '/register',
-        element: (
-            <ProtectedRoute requireAuth={false}>
-                <RegisterPage />
-            </ProtectedRoute>
-        ),
-    },
-    {
-        path: '/onboarding',
-        element: (
-            <ProtectedRoute requireAuth={false}>
-                <OnboardingPage />
-            </ProtectedRoute>
-        ),
     },
 
     { path: '*', element: <Navigate to="/home" replace /> },

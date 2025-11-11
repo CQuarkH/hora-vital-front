@@ -1,0 +1,16 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "types": [
+            "cypress",
+            "@badeball/cypress-cucumber-preprocessor"
+        ],
+        "isolatedModules": false
+    },
+    "include": [
+        "**/*.ts",
+        "**/*.tsx",
+        "../node_modules/cypress",
+        "../node_modules/@badeball/cypress-cucumber-preprocessor"
+    ]
+}
