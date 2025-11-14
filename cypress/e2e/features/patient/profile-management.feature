@@ -4,13 +4,13 @@ Feature: Gestión de perfil y preferencias
   Para mantener mis datos actualizados
 
   Background:
-    Given que estoy autenticado con RUT "12.345.678-9" y contraseña "Test123456"
+    Given que estoy autenticado con RUT "21.600.919-3" y contraseña "HoraVital2024!"
 
   Scenario: Editar información del perfil exitosamente
     Given que estoy en la página de perfil
     When hago clic en el botón "Editar Perfil"
-    And actualizo mi nombre a "Juan Carlos"
-    And actualizo mi apellido a "Pérez González"
+    And actualizo mi nombre a "Benjamin"
+    And actualizo mi apellido a "San Martin"
     And actualizo mi dirección a "Av. Principal 123, Santiago"
     And actualizo mi teléfono a "+9 8765 4321"
     And hago clic en el botón "Guardar Cambios"

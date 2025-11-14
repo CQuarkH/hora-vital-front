@@ -1,36 +1,40 @@
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import type { User } from '../types/auth/auth_types';
-import type { ReactNode } from 'react';
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import type { User } from "../types/auth/auth_types";
+import type { ReactNode } from "react";
 
 interface ProtectedRouteProps {
-    children: ReactNode;
-    allowedRoles?: User['role'][];
-    requireAuth?: boolean;
+  children: ReactNode;
+  allowedRoles?: User["role"][];
+  requireAuth?: boolean;
 }
 
 export const ProtectedRoute = ({
-    children,
-    allowedRoles,
-    requireAuth = true,
+  children,
+  allowedRoles,
+  requireAuth = true,
 }: ProtectedRouteProps) => {
-    const { isAuthenticated, hasAnyRole } = useAuth();
-    const location = useLocation();
+  const { isAuthenticated, hasAnyRole, loading } = useAuth();
+  const location = useLocation();
 
-    // Si requiere autenticación y no está autenticado
-    if (requireAuth && !isAuthenticated()) {
-        return <Navigate to="/login" state={{ from: location }} replace />;
-    }
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
-    // Si no requiere autenticación pero está autenticado (para páginas de login/register)
-    if (!requireAuth && isAuthenticated()) {
-        return <Navigate to="/home" replace />;
-    }
+  // Si requiere autenticación y no está autenticado
+  if (requireAuth && !isAuthenticated()) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
 
-    // Si se especifican roles permitidos, verificar
-    if (allowedRoles && allowedRoles.length > 0 && !hasAnyRole(allowedRoles)) {
-        return <Navigate to="/unauthorized" replace />;
-    }
+  // Si no requiere autenticación pero está autenticado (para páginas de login/register)
+  if (!requireAuth && isAuthenticated()) {
+    return <Navigate to="/home" replace />;
+  }
 
-    return <>{children}</>;
+  // Si se especifican roles permitidos, verificar
+  if (allowedRoles && allowedRoles.length > 0 && !hasAnyRole(allowedRoles)) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return <>{children}</>;
 };
