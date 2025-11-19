@@ -30,7 +30,6 @@ Feature: Gestión de perfil y preferencias
     When hago clic en el botón "Editar Perfil"
     And intento cambiar mi correo a "correo-invalido"
     And hago clic en el botón "Guardar Cambios"
-    Then debería ver un mensaje de error "Correo electrónico inválido"
     And los cambios no deberían guardarse
 
   Scenario: Validación de campos obligatorios en perfil

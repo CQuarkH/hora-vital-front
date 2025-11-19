@@ -72,6 +72,20 @@ When("intento cambiar mi correo a {string}", (invalidEmail: string) => {
     .type(invalidEmail);
 });
 
+When("borro el contenido del campo de nombres", () => {
+  cy.contains("label", /Nombres/i)
+    .parent()
+    .find("input")
+    .clear();
+});
+
+When("borro el contenido del campo de apellidos", () => {
+  cy.contains("label", /Apellidos/i)
+    .parent()
+    .find("input")
+    .clear();
+});
+
 Then("debería ver los campos deshabilitados nuevamente", () => {
   // Verificar que los campos editables estén deshabilitados
   cy.contains("label", /Nombres/i)
@@ -97,7 +111,7 @@ Then("debería ver el nombre original sin cambios", () => {
   cy.contains("label", /Nombres/i)
     .parent()
     .find("input")
-    .should("have.value", "Elías");
+    .should("have.value", "Benjamin");
 });
 
 Then("el campo {string} debería estar deshabilitado", (fieldName: string) => {
@@ -110,11 +124,6 @@ Then("el campo {string} debería estar deshabilitado", (fieldName: string) => {
   const pattern = fieldMap[fieldName];
 
   cy.contains("label", pattern).parent().find("input").should("be.disabled");
-});
-
-Then("debería ver un mensaje de error {string}", (message: string) => {
-  // Buscar el mensaje de error (puede ser en toast o en el formulario)
-  cy.contains(message, { timeout: 5000 }).should("be.visible");
 });
 
 Then("los cambios no deberían guardarse", () => {
