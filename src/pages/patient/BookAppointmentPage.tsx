@@ -3,120 +3,112 @@ import { useNavigate } from "react-router-dom";
 import { StepSelector } from "../../components/appointments/StepSelector";
 import { Calendar } from "../../components/appointments/Calendar";
 import { TimeSlotPicker } from "../../components/appointments/TimeSlotPicker";
-import type { TimeSlot } from "../../components/appointments/TimeSlotPicker";
+import type { TimeSlot as PickerTimeSlot } from "../../components/appointments/TimeSlotPicker";
 import { AppointmentSummary } from "../../components/appointments/AppointmentSummary";
+import { appointmentService } from "../../services/appointments/appointment_service";
+import { Specialty, Doctor } from "../../types/appointments/appointment_types";
+import toast from "react-hot-toast";
 
 import { FaUserMd, FaStethoscope, FaRegClock } from "react-icons/fa";
-
-// --- DATOS DE EJEMPLO (MOCK) ---
-const MOCK_SPECIALTIES = [
-  "Medicina General",
-  "Cardiología",
-  "Pediatría",
-  "Dermatología",
-];
-const MOCK_DOCTORS: Record<string, string[]> = {
-  "Medicina General": ["Dr. María Rodríguez", "Dr. Luis Torres"],
-  Cardiología: ["Dr. Carlos Mendoza"],
-  Pediatría: ["Dra. Ana Silva"],
-  Dermatología: ["Dra. Laura Gómez"],
-};
-
-const MOCK_BLOCKED_SLOTS: { date: string; time: string }[] = [
-  { date: "2025-11-04", time: "10:00" },
-  { date: "2025-11-04", time: "14:30" },
-];
-
-// Función simulada de API para "consultar horarios disponibles"
-const fetchAvailability = (
-  doctorId: string,
-  date: Date
-): Promise<TimeSlot[]> => {
-  console.log(
-    `Simulando fetch de disponibilidad para Dr. ${doctorId} en ${date.toDateString()}`
-  );
-
-  const allTimes = [
-    "10:00",
-    "10:30",
-    "11:00",
-    "11:30",
-    "14:00",
-    "14:30",
-    "15:00",
-    "15:30",
-    "16:00",
-    "16:30",
-    "17:00",
-    "17:30",
-  ];
-
-  const slots = allTimes.map((time) => ({
-    time,
-    available: time !== "14:30",
-  }));
-
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(slots);
-    }, 800);
-  });
-};
 
 export default function BookAppointmentPage() {
   const navigate = useNavigate();
 
-  const [specialty, setSpecialty] = useState<string | null>(null);
-  const [doctor, setDoctor] = useState<string | null>(null);
+  const [specialties, setSpecialties] = useState<Specialty[]>([]);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+
+  const [specialtyId, setSpecialtyId] = useState<string | null>(null);
+  const [doctorProfileId, setDoctorProfileId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [time, setTime] = useState<string | null>(null);
 
-  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<PickerTimeSlot[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const availableDoctors = specialty ? MOCK_DOCTORS[specialty] || [] : [];
+  // Cargar especialidades al inicio
+  useEffect(() => {
+    appointmentService.getSpecialties()
+      .then(setSpecialties)
+      .catch(err => console.error("Error cargando especialidades", err));
+  }, []);
 
   useEffect(() => {
-    if (doctor && selectedDate) {
+    if (specialtyId) {
+      setDoctors([]);
+      setDoctorProfileId(null);
+      setTime(null);
+      setAvailableSlots([]);
+
+      appointmentService.getDoctors(specialtyId)
+        .then(setDoctors)
+        .catch(err => console.error("Error cargando médicos", err));
+    } else {
+      setDoctors([]);
+    }
+  }, [specialtyId]);
+
+  // Cargar disponibilidad
+  useEffect(() => {
+    if (doctorProfileId && selectedDate) {
       setIsLoadingSlots(true);
       setAvailableSlots([]);
       setTime(null);
 
-      fetchAvailability(doctor, selectedDate).then((slots) => {
-        const y = selectedDate.getFullYear();
-        const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
-        const d = String(selectedDate.getDate()).padStart(2, "0");
-        const selectedKey = `${y}-${m}-${d}`;
-
-        const merged = slots.map((s) => {
-          const isBlocked = MOCK_BLOCKED_SLOTS.some(
-            (b) => b.date === selectedKey && b.time === s.time
-          );
-          return {
-            ...s,
-            available: isBlocked ? false : s.available,
-          };
-        });
-
-        setAvailableSlots(merged);
-        setIsLoadingSlots(false);
-      });
+      appointmentService.getAvailability(selectedDate, doctorProfileId, specialtyId || undefined)
+        .then((slots) => {
+          const pickerSlots: PickerTimeSlot[] = slots.map(s => ({
+            time: s.startTime,
+            available: true
+          }));
+          setAvailableSlots(pickerSlots);
+        })
+        .catch(err => {
+          console.error("Error cargando disponibilidad", err);
+          toast.error("Error al cargar horarios disponibles");
+        })
+        .finally(() => setIsLoadingSlots(false));
     }
-  }, [doctor, selectedDate]);
+  }, [doctorProfileId, selectedDate, specialtyId]);
 
   const formattedDate = selectedDate
     ? selectedDate
-        .toLocaleDateString("es-CL", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        })
-        .replace(/\//g, "-")
+      .toLocaleDateString("es-CL", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+      .replace(/\//g, "-")
     : null;
 
-  const handleConfirm = () => {
-    console.log("Cita confirmada:", { specialty, doctor, formattedDate, time });
-    navigate("/appointment-confirmation");
+  const selectedSpecialtyName = specialties.find(s => s.id === specialtyId)?.name;
+  const selectedDoctorName = doctors.find(d => d.id === doctorProfileId)
+    ? `${doctors.find(d => d.id === doctorProfileId)?.user.firstName} ${doctors.find(d => d.id === doctorProfileId)?.user.lastName}`
+    : null;
+
+  const handleConfirm = async () => {
+    if (!specialtyId || !doctorProfileId || !selectedDate || !time) {
+      toast.error("Por favor completa todos los campos");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await appointmentService.createAppointment({
+        specialtyId,
+        doctorProfileId,
+        appointmentDate: selectedDate.toISOString(),
+        startTime: time,
+        notes: "Agendado desde la web"
+      });
+      toast.success("Cita agendada exitosamente");
+      navigate("/appointment-confirmation");
+    } catch (error: any) {
+      console.error("Error al agendar:", error);
+      toast.error(error.message || "Error al agendar la cita");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -136,21 +128,16 @@ export default function BookAppointmentPage() {
             description="Selecciona el tipo de consulta médica"
           >
             <select
-              value={specialty || ""}
-              onChange={(e) => {
-                setSpecialty(e.target.value);
-                setDoctor(null);
-                setTime(null);
-                setAvailableSlots([]);
-              }}
+              value={specialtyId || ""}
+              onChange={(e) => setSpecialtyId(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg text-sm"
             >
               <option value="" disabled>
                 Selecciona una especialidad
               </option>
-              {MOCK_SPECIALTIES.map((s) => (
-                <option key={s} value={s}>
-                  {s}
+              {specialties.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
                 </option>
               ))}
             </select>
@@ -162,19 +149,19 @@ export default function BookAppointmentPage() {
             description="Selecciona el profesional de tu preferencia"
           >
             <select
-              value={doctor || ""}
-              onChange={(e) => setDoctor(e.target.value)}
-              disabled={!specialty}
+              value={doctorProfileId || ""}
+              onChange={(e) => setDoctorProfileId(e.target.value)}
+              disabled={!specialtyId}
               className="w-full p-3 border border-gray-300 rounded-lg text-sm"
             >
               <option value="" disabled>
-                {specialty
+                {specialtyId
                   ? "Selecciona un médico"
                   : "Primero selecciona una especialidad"}
               </option>
-              {availableDoctors.map((d) => (
-                <option key={d} value={d}>
-                  {d}
+              {doctors.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.user.firstName} {d.user.lastName}
                 </option>
               ))}
             </select>
@@ -199,7 +186,13 @@ export default function BookAppointmentPage() {
               />
             )}
 
-            {!isLoadingSlots && availableSlots.length === 0 && (
+            {!isLoadingSlots && availableSlots.length === 0 && doctorProfileId && (
+              <p className="text-sm text-gray-500">
+                No hay horarios disponibles para esta fecha.
+              </p>
+            )}
+
+            {!isLoadingSlots && !doctorProfileId && (
               <p className="text-sm text-gray-500">
                 Selecciona un médico y una fecha para ver los horarios.
               </p>
@@ -214,12 +207,13 @@ export default function BookAppointmentPage() {
           />
 
           <AppointmentSummary
-            specialty={specialty}
-            doctor={doctor}
+            specialty={selectedSpecialtyName || null}
+            doctor={selectedDoctorName || null}
             date={formattedDate}
             time={time}
             onConfirm={handleConfirm}
           />
+          {isSubmitting && <p className="text-center text-sm text-gray-500">Procesando...</p>}
         </div>
       </div>
     </div>
