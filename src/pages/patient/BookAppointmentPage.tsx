@@ -101,6 +101,10 @@ export default function BookAppointmentPage() {
         startTime: time,
         notes: "Agendado desde la web"
       });
+        try {
+          window.dispatchEvent(new CustomEvent('notifications:refresh'));
+        } catch (e) {
+        }
       toast.success("Cita agendada exitosamente");
       navigate("/appointment-confirmation");
     } catch (error: any) {

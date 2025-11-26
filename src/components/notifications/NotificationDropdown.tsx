@@ -1,19 +1,23 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HiOutlineBell, HiOutlineCheckCircle } from 'react-icons/hi';
-import type { Notification } from '../../types/notification/notification_types';
+import type { Notification } from '../../services/notifications/notificationService';
 
 interface NotificationDropdownProps {
     notifications: Notification[];
     onMarkAsRead: (id: string) => void;
 }
 
+const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit' });
+};
+
 const DropdownRow: React.FC<{ notif: Notification, onClick: () => void }> = ({ notif, onClick }) => (
     <div onClick={onClick} className="flex items-start gap-3 p-3 hover:bg-medical-100 rounded-lg cursor-pointer">
         <HiOutlineBell className="text-lg text-medical-700 mt-1 flex-shrink-0" />
         <div className="flex-1">
             <p className="text-sm text-gray-800 leading-tight">{notif.title}</p>
-            <span className="text-xs text-gray-500">{notif.timestamp.split(' ')[0]}</span>
+            <span className="text-xs text-gray-500">{formatDate(notif.createdAt)}</span>
         </div>
         {!notif.isRead && (
             <span className="h-2.5 w-2.5 bg-green-500 rounded-full mt-1.5 flex-shrink-0" title="No leído"></span>
@@ -28,10 +32,10 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ noti
     const handleViewAll = () => {
         navigate('/notifications');
     };
-    
+
     const handleRowClick = (id: string) => {
         onMarkAsRead(id);
-        navigate(`/notifications/${id}`);
+        navigate('/notifications');
     };
 
     return (
@@ -39,12 +43,12 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ noti
             <div className="p-4 border-b border-gray-100">
                 <h4 className="font-semibold text-gray-900">Notificaciones</h4>
             </div>
-            
+
             <div className="flex flex-col gap-1 p-2 max-h-80 overflow-y-auto">
                 {unreadNotifications.length > 0 ? (
                     unreadNotifications.map(notif => (
-                        <DropdownRow 
-                            key={notif.id} 
+                        <DropdownRow
+                            key={notif.id}
                             notif={notif}
                             onClick={() => handleRowClick(notif.id)}
                         />

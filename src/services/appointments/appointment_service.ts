@@ -87,8 +87,8 @@ class AppointmentService {
     }
 
     async cancelAppointment(id: string, reason: string): Promise<void> {
-        const response = await fetch(`${API_URL}/api/appointments/${id}`, {
-            method: 'DELETE',
+        const response = await fetch(`${API_URL}/api/appointments/${id}/cancel`, {
+            method: 'PATCH',
             headers: this.getHeaders(),
             body: JSON.stringify({ cancellationReason: reason }),
         });

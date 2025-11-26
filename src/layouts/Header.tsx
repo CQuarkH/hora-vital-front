@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AuthContext from "../context/AuthContext";
 import { FaHeartbeat } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -6,35 +6,56 @@ import { IoMdNotificationsOutline } from "react-icons/io";
 import { IoLogOutOutline } from "react-icons/io5";
 import ProfileTile from "./ProfileTile";
 import { NotificationDropdown } from "../components/notifications/NotificationDropdown";
-import type { Notification } from "../types/notification/notification_types";
-
-// --- DATOS DE EJEMPLO (MOCK) ---
-const MOCK_NOTIFICATIONS_DATA: Notification[] = [
-    { id: '1', type: 'reminder', title: 'Recordatorio de Cita', message: 'Tu cita con Dr. María Rodríguez es mañana a las 10:30', timestamp: '13-01-2024 14:30', priority: 'Alta', isRead: false },
-    { id: '2', type: 'confirmation', title: 'Cita Confirmada', message: 'Tu cita del 22 de enero con Dr. Carlos Mendoza ha sido confirmada', timestamp: '12-01-2024 09:15', priority: 'Media', isRead: false },
-    { id: '3', type: 'system', title: 'Actualización del Sistema', message: 'El sistema estará en mantenimiento el domingo de 02:00 a 06:00', timestamp: '11-01-2024 16:45', priority: 'Baja', isRead: true },
-];
-// --- FIN DE DATOS DE EJEMPLO ---
+import { notificationService, type Notification } from "../services/notifications/notificationService";
 
 export const Header = () => {
     const context = React.useContext(AuthContext);
     const navigate = useNavigate();
 
-    const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS_DATA);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-    const unreadCount = notifications.filter(n => !n.isRead).length;
-
-    const handleMarkAsRead = (id: string) => {
-        setNotifications(prev =>
-            prev.map(n => (n.id === id ? { ...n, isRead: true } : n))
-        );
-    };
-
     if (!context) {
         throw new Error('Header debe ser usado dentro de un AuthProvider');
     }
     const { user, logout } = context;
+
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    useEffect(() => {
+        if (!user) return;
+
+        loadNotifications();
+
+        const onRefresh = () => {
+            loadNotifications();
+        };
+
+        window.addEventListener('notifications:refresh', onRefresh);
+
+        const intervalId = setInterval(() => {
+            loadNotifications();
+        }, 30000);
+
+        return () => {
+            clearInterval(intervalId);
+            window.removeEventListener('notifications:refresh', onRefresh);
+        };
+    }, [user]);
+
+    const loadNotifications = async () => {
+        const response = await notificationService.getUnreadNotifications();
+        if (response.success && response.data) {
+            setNotifications(response.data.notifications);
+        }
+    };
+
+    const unreadCount = notifications.filter(n => !n.isRead).length;
+
+    const handleMarkAsRead = async (id: string) => {
+        await notificationService.markAsRead(id);
+        setNotifications(prev =>
+            prev.map(n => (n.id === id ? { ...n, isRead: true } : n))
+        );
+    };
 
     const mapUserRoleToLabel = (role: string | undefined) => {
         switch (role) {
@@ -70,12 +91,12 @@ export const Header = () => {
                                 <div className="relative">
                                     <button
                                         onClick={() => setIsDropdownOpen(prev => !prev)}
-                                        className="text-2xl text-medical-900 cursor-pointer" 
+                                        className="text-2xl text-medical-900 cursor-pointer"
                                         title="Notificaciones"
                                     >
                                         <IoMdNotificationsOutline />
                                     </button>
-                                    
+
                                     {unreadCount > 0 && (
                                         <span className="absolute -top-1 -right-1.5 h-4 w-4 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                                             {unreadCount}
@@ -83,7 +104,7 @@ export const Header = () => {
                                     )}
 
                                     {isDropdownOpen && (
-                                        <NotificationDropdown 
+                                        <NotificationDropdown
                                             notifications={notifications}
                                             onMarkAsRead={handleMarkAsRead}
                                         />
