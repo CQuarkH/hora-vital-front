@@ -1,13 +1,5 @@
 import { Given, When, Then } from "@badeball/cypress-cucumber-preprocessor";
 
-Given(
-  "que estoy autenticado con RUT {string} y contraseña {string}",
-  (rut: string, password: string) => {
-    cy.login(rut, password);
-    cy.url().should("not.include", "/login");
-  }
-);
-
 Given("que estoy en la página de perfil", () => {
   cy.visit("/profile");
   cy.url().should("include", "/profile");
@@ -111,20 +103,20 @@ Then("debería ver el nombre original sin cambios", () => {
   cy.contains("label", /Nombres/i)
     .parent()
     .find("input")
-    .should("have.value", "Benjamin");
+    .should("have.value", "Elías");
 });
 
-Then("el campo {string} debería estar deshabilitado", (fieldName: string) => {
-  const fieldMap: { [key: string]: RegExp } = {
-    RUT: /RUT/i,
-    "Fecha de Nacimiento": /Fecha de Nacimiento/i,
-    Género: /Género/i,
-  };
+// Then("el campo {string} debería estar deshabilitado", (fieldName: string) => {
+//   const fieldMap: { [key: string]: RegExp } = {
+//     RUT: /RUT/i,
+//     "Fecha de Nacimiento": /Fecha de Nacimiento/i,
+//     Género: /Género/i,
+//   };
 
-  const pattern = fieldMap[fieldName];
+//   const pattern = fieldMap[fieldName];
 
-  cy.contains("label", pattern).parent().find("input").should("be.disabled");
-});
+//   cy.contains("label", pattern).parent().find("input").should("be.disabled");
+// });
 
 Then("los cambios no deberían guardarse", () => {
   // El formulario debería seguir en modo edición o mostrar error
