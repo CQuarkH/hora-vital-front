@@ -1,39 +1,79 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HiOutlineArrowLeft, HiOutlinePlus, HiOutlineSearch, HiOutlineAdjustments } from 'react-icons/hi';
 import { PatientListCard, type PatientData } from '../../components/patients/PatientListCard';
 import { SummaryStatCard } from '../../components/patients/SummaryStatCard';
 import type { PatientStatus } from '../../components/patients/PatientStatusBadge';
+import { adminService, type User } from '../../services/admin/adminService';
 
-// --- DATOS DE EJEMPLO (MOCK) ---
-const MOCK_PATIENTS_DATA: PatientData[] = [
-    { id: '1', name: 'Juan Carlos González', rut: '12.345.678-9', phone: '+56 9 1234 5678', email: 'juan.gonzalez@email.com', age: 40, lastVisit: '14-01-2024', nextVisit: '19-02-2024', totalAppointments: 12, status: 'Activo' },
-    { id: '2', name: 'Ana María Silva', rut: '98.765.432-1', phone: '+56 9 8765 4321', email: 'ana.silva@email.com', age: 35, lastVisit: '09-01-2024', nextVisit: 'N/A', totalAppointments: 8, status: 'Activo' },
-    { id: '3', name: 'Pedro Luis Torres', rut: '11.222.333-4', phone: '+56 9 5555 6666', email: 'pedro.torres@email.com', age: 45, lastVisit: '07-01-2024', nextVisit: '14-02-2024', totalAppointments: 25, status: 'Activo' },
-    { id: '4', name: 'Carmen Rosa López', rut: '55.666.777-8', phone: '+56 9 7777 8888', email: 'carmen.lopez@email.com', age: 30, lastVisit: '15-12-2023', nextVisit: 'N/A', totalAppointments: 3, status: 'Inactivo' },
-    { id: '5', name: 'Roberto Andrés Muñoz', rut: '22.333.444-5', phone: '+56 9 9999 0000', email: 'roberto.munoz@email.com', age: 43, lastVisit: '17-01-2024', nextVisit: '24-02-2024', totalAppointments: 15, status: 'Activo' },
-];
+const calculateAge = (birthDate?: string): number => {
+    if (!birthDate) return 0;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        age--;
+    }
+    return age;
+};
+
+const mapUserToPatientData = (user: User): PatientData => {
+    return {
+        id: user.id,
+        name: `${user.firstName} ${user.lastName}`,
+        rut: user.rut,
+        phone: user.phone || 'N/A',
+        email: user.email,
+        age: calculateAge(user.birthDate),
+        lastVisit: 'N/A', // No disponible en el endpoint
+        nextVisit: 'N/A', // No disponible en el endpoint
+        totalAppointments: 0, // No disponible en el endpoint
+        status: user.isActive ? 'Activo' : 'Inactivo',
+    };
+};
 
 export default function AdminPatientsPage() {
     const navigate = useNavigate();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<PatientStatus | 'Todos'>('Todos');
+    const [patients, setPatients] = useState<PatientData[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchPatients = async () => {
+            try {
+                setLoading(true);
+                const response = await adminService.getPatients({ page: 1, limit: 1000 });
+                const mappedPatients = response.patients.map(mapUserToPatientData);
+                setPatients(mappedPatients);
+                setError(null);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Error al cargar pacientes');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPatients();
+    }, []);
 
     const filteredPatients = useMemo(() => {
-        return MOCK_PATIENTS_DATA
-            .filter(p => 
+        return patients
+            .filter(p =>
                 statusFilter === 'Todos' || p.status === statusFilter
             )
-            .filter(p => 
+            .filter(p =>
                 p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 p.rut.includes(searchTerm)
             );
-    }, [searchTerm, statusFilter]);
+    }, [patients, searchTerm, statusFilter]);
 
-    const totalActivos = MOCK_PATIENTS_DATA.filter(p => p.status === 'Activo').length;
-    const totalConCitas = MOCK_PATIENTS_DATA.filter(p => p.nextVisit !== 'N/A').length;
-    const totalCitas = MOCK_PATIENTS_DATA.reduce((sum, p) => sum + p.totalAppointments, 0);
+    const totalActivos = patients.filter(p => p.status === 'Activo').length;
+    const totalConCitas = patients.filter(p => p.nextVisit !== 'N/A').length;
+    const totalCitas = patients.reduce((sum, p) => sum + p.totalAppointments, 0);
 
     return (
         <div className="flex flex-col gap-6">
@@ -54,6 +94,7 @@ export default function AdminPatientsPage() {
                     </p>
                 </div>
                 <button
+                    onClick={() => navigate('/admin-create-user')}
                     className="flex items-center gap-2 px-4 py-2 bg-medical-700 text-white rounded-lg font-medium hover:bg-medical-800"
                 >
                     <HiOutlinePlus className="h-5 w-5" />
@@ -87,7 +128,11 @@ export default function AdminPatientsPage() {
             </div>
 
             <div className="flex flex-col gap-4">
-                {filteredPatients.length > 0 ? (
+                {loading ? (
+                    <p className="text-center text-gray-500 py-8">Cargando pacientes...</p>
+                ) : error ? (
+                    <p className="text-center text-red-500 py-8">{error}</p>
+                ) : filteredPatients.length > 0 ? (
                     filteredPatients.map(patient => (
                         <PatientListCard key={patient.id} patient={patient} />
                     ))

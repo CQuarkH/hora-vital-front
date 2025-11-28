@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { AdminStatCard } from '../../components/admin/AdminStatCard';
 import { RoleCard } from '../../components/admin/RoleCard';
@@ -70,7 +71,7 @@ export default function RoleManagementPage() {
     const handleDeleteRole = (role: RoleData) => {
         if (!role.canBeDeleted) return;
         console.log("Eliminando Rol:", role.name);
-        alert(`Simulando eliminación de ${role.name}`);
+        toast(`Simulando eliminación de ${role.name}`);
     };
 
     const TabButton: React.FC<{ title: string, tabId: 'users' | 'roles', to: string }> = ({ title, tabId, to }) => (

@@ -46,7 +46,7 @@ class UserService {
      */
     async getProfile(token: string): Promise<ServiceResponse<User>> {
         try {
-            const response = await fetch(`${API_URL}/api/profile`, {
+            const response = await fetch(`${API_URL}/api/users/profile`, {
                 method: 'GET',
                 headers: this.getHeaders(token),
             });

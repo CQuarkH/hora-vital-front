@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { AdminStatCard } from '../../components/admin/AdminStatCard';
@@ -8,36 +8,79 @@ import clsx from 'clsx';
 import { HiOutlineUsers, HiOutlineShieldCheck, HiOutlineHeart, HiOutlineChartBar, HiOutlineSearch } from 'react-icons/hi';
 import { EditUserModal } from '../../components/admin/EditUserModal';
 import { DeleteConfirmationModal } from '../../components/admin/DeleteConfirmationModal';
+import { adminService, type User } from '../../services/admin/adminService';
 
-// --- DATOS DE EJEMPLO (MOCK) ---
-const MOCK_USERS_DATA: SystemUser[] = [
-    { id: '1', name: 'María González', email: 'maria.gonzalez@cesfam.cl', role: 'Secretario/a', status: 'Activo', lastAccess: '2024-01-15' },
-    { id: '2', name: 'Carlos Rodríguez', email: 'carlos.rodriguez@cesfam.cl', role: 'Secretario/a', status: 'Activo', lastAccess: '2024-01-14' },
-    { id: '3', name: 'Ana Martínez', email: 'ana.martinez@cesfam.cl', role: 'Secretario/a', status: 'Inactivo', lastAccess: '2024-01-10' },
-];
+const ROLE_OPTIONS = ['Todos', 'Secretario/a', 'Paciente', 'Administrador', 'Doctor'];
 
-const MOCK_STATS = {
-    total: 154,
-    secretaries: 4,
-    patients: 150,
-    active: 142
+const mapRoleToSpanish = (role: string): 'Secretario/a' | 'Paciente' | 'Administrador' => {
+    switch (role) {
+        case 'SECRETARY':
+            return 'Secretario/a';
+        case 'PATIENT':
+            return 'Paciente';
+        case 'ADMIN':
+            return 'Administrador';
+        case 'DOCTOR':
+            return 'Secretario/a'; // Doctor se muestra como Secretario/a por ahora
+        default:
+            return 'Paciente';
+    }
 };
 
-const ROLE_OPTIONS = ['Todos', 'Secretario/a', 'Paciente', 'Administrador'];
+const mapUserToSystemUser = (user: User): SystemUser => {
+    return {
+        id: user.id,
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        role: mapRoleToSpanish(user.role),
+        status: user.isActive ? 'Activo' : 'Inactivo',
+        lastAccess: new Date(user.updatedAt).toLocaleDateString('es-CL'),
+    };
+};
 
 export default function AdminHomePage() {
     const { user } = useAuth();
     const navigate = useNavigate();
 
     const [activeTab, setActiveTab] = useState<'users' | 'roles'>('users');
-    
+
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('Todos');
 
-    const [users, setUsers] = useState<SystemUser[]>(MOCK_USERS_DATA);
+    const [users, setUsers] = useState<SystemUser[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [stats, setStats] = useState({ total: 0, secretaries: 0, patients: 0, active: 0 });
+
     const [selectedUser, setSelectedUser] = useState<SystemUser | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                setLoading(true);
+                const response = await adminService.getUsers({ page: 1, limit: 1000 });
+                const systemUsers = response.users.map(mapUserToSystemUser);
+                setUsers(systemUsers);
+
+                // Calculate stats
+                const total = response.meta.total;
+                const secretaries = response.users.filter((u: User) => u.role === 'SECRETARY').length;
+                const patients = response.users.filter((u: User) => u.role === 'PATIENT').length;
+                const active = response.users.filter((u: User) => u.isActive).length;
+                setStats({ total, secretaries, patients, active });
+
+                setError(null);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Error al cargar usuarios');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUsers();
+    }, []);
 
     const filteredUsers = useMemo(() => {
         return users
@@ -101,22 +144,22 @@ export default function AdminHomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <AdminStatCard
                     label="Total Usuarios"
-                    value={MOCK_STATS.total}
+                    value={stats.total}
                     icon={<HiOutlineUsers />}
                 />
                 <AdminStatCard
                     label="Secretarios/as"
-                    value={MOCK_STATS.secretaries}
+                    value={stats.secretaries}
                     icon={<HiOutlineShieldCheck />}
                 />
                 <AdminStatCard
                     label="Pacientes"
-                    value={MOCK_STATS.patients}
+                    value={stats.patients}
                     icon={<HiOutlineHeart />}
                 />
                 <AdminStatCard
                     label="Usuarios Activos"
-                    value={MOCK_STATS.active}
+                    value={stats.active}
                     icon={<HiOutlineChartBar />}
                 />
             </div>
@@ -176,10 +219,14 @@ export default function AdminHomePage() {
                             <div className="col-span-1 text-sm font-semibold text-gray-600 text-right">Acciones</div>
                         </div>
 
-                        {filteredUsers.length > 0 ? (
+                        {loading ? (
+                            <p className="text-center text-gray-500 p-8">Cargando usuarios...</p>
+                        ) : error ? (
+                            <p className="text-center text-red-500 p-8">{error}</p>
+                        ) : filteredUsers.length > 0 ? (
                             filteredUsers.map(u => (
-                                <UserListRow 
-                                    key={u.id} 
+                                <UserListRow
+                                    key={u.id}
                                     user={u}
                                     onEdit={handleEditUser}
                                     onDelete={handleDeleteUser}

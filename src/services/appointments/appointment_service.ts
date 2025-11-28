@@ -94,6 +94,29 @@ class AppointmentService {
         });
         if (!response.ok) throw new Error('Error al cancelar cita');
     }
+
+    async updateAppointment(
+        id: string,
+        data: {
+            doctorProfileId?: string;
+            specialtyId?: string;
+            appointmentDate?: string;
+            startTime?: string;
+            notes?: string;
+        }
+    ): Promise<Appointment> {
+        const response = await fetch(`${API_URL}/api/appointments/${id}`, {
+            method: 'PUT',
+            headers: this.getHeaders(),
+            body: JSON.stringify(data),
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Error al actualizar cita');
+        }
+        const result = await response.json();
+        return result.appointment;
+    }
 }
 
 export const appointmentService = new AppointmentService();

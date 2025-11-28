@@ -1,24 +1,48 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { AdminAppointmentTableRow } from '../../components/secretary/AdminAppointmentTableRow';
 import type { AdminAppointment } from '../../components/secretary/AdminAppointmentTableRow';
 import type { AppointmentStatus } from '../../components/appointments/AppointmentStatusBadge';
 import { Input } from '../../components/Input';
 import { HiOutlineArrowLeft, HiOutlineSearch, HiOutlineDocumentDownload } from 'react-icons/hi';
 import { CancelAppointmentModal } from '../../components/appointments/CancelAppointmentModal';
+import { adminService } from '../../services/admin/adminService';
+import { appointmentService } from '../../services/appointments/appointment_service';
 
-// --- DATOS DE EJEMPLO (MOCK) ---
-const MOCK_ALL_APPOINTMENTS: AdminAppointment[] = [
-    { id: '1', patientName: 'Juan Carlos González', rut: '12.345.678-9', doctorName: 'Dr. María Rodríguez', date: '2025-11-05', time: '08:30', status: 'Confirmada' },
-    { id: '2', patientName: 'Ana María Silva', rut: '98.765.432-1', doctorName: 'Dr. Carlos Mendoza', date: '2025-11-05', time: '09:00', status: 'Pendiente' },
-    { id: '3', patientName: 'Pedro Luis Torres', rut: '11.222.333-4', doctorName: 'Dr. María Rodríguez', date: '2025-11-05', time: '09:30', status: 'Confirmada' },
-    { id: '4', patientName: 'Carmen Rosa López', rut: '55.666.777-8', doctorName: 'Dra. Ana Silva', date: '2025-11-04', time: '10:00', status: 'Completada' },
-    { id: '5', patientName: 'Roberto Andrés Muñoz', rut: '22.333.444-5', doctorName: 'Dr. Carlos Mendoza', date: '2025-11-06', time: '10:30', status: 'Confirmada' },
-    { id: '6', patientName: 'Juan Carlos González', rut: '12.345.678-9', doctorName: 'Dr. María Rodríguez', date: '2025-10-20', time: '11:00', status: 'Completada' },
-    { id: '7', patientName: 'Ana María Silva', rut: '98.765.432-1', doctorName: 'Dr. Carlos Mendoza', date: '2025-10-22', time: '14:00', status: 'Cancelada' },
-];
-const MOCK_DOCTORS = ['Todos', 'Dr. María Rodríguez', 'Dr. Carlos Mendoza', 'Dra. Ana Silva'];
 const STATUS_OPTIONS: (AppointmentStatus | 'Todos')[] = ['Todos', 'Confirmada', 'Pendiente', 'Completada', 'Cancelada', 'En Atención', 'No Asistió'];
+
+const mapBackendStatusToFrontend = (status: string): AppointmentStatus => {
+    switch (status) {
+        case 'SCHEDULED':
+            return 'Confirmada';
+        case 'COMPLETED':
+            return 'Completada';
+        case 'CANCELLED':
+            return 'Cancelada';
+        case 'NO_SHOW':
+            return 'No Asistió';
+        default:
+            return 'Pendiente';
+    }
+};
+
+const mapFrontendStatusToBackend = (status: AppointmentStatus | 'Todos'): string | undefined => {
+    switch (status) {
+        case 'Confirmada':
+            return 'SCHEDULED';
+        case 'Completada':
+            return 'COMPLETED';
+        case 'Cancelada':
+            return 'CANCELLED';
+        case 'No Asistió':
+            return 'NO_SHOW';
+        case 'Todos':
+            return undefined;
+        default:
+            return undefined;
+    }
+};
 
 export default function AdminAppointmentsPage() {
     const navigate = useNavigate();
@@ -29,10 +53,40 @@ export default function AdminAppointmentsPage() {
     const [doctorFilter, setDoctorFilter] = useState('Todos');
     const [statusFilter, setStatusFilter] = useState<AppointmentStatus | 'Todos'>('Todos');
 
-    const [appointments, setAppointments] = useState(MOCK_ALL_APPOINTMENTS);
+    const [appointments, setAppointments] = useState<AdminAppointment[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
     const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+
+    useEffect(() => {
+        fetchAppointments();
+    }, []);
+
+    const fetchAppointments = async () => {
+        try {
+            setLoading(true);
+            const response = await adminService.getAppointments({ page: 1, limit: 500 });
+
+            const mappedAppointments: AdminAppointment[] = response.appointments.map((apt: any) => ({
+                id: apt.id,
+                patientName: `${apt.patient.firstName} ${apt.patient.lastName}`,
+                rut: apt.patient.rut,
+                doctorName: `Dr. ${apt.doctorProfile.user.firstName} ${apt.doctorProfile.user.lastName}`,
+                date: apt.appointmentDate,
+                time: apt.startTime,
+                status: mapBackendStatusToFrontend(apt.status),
+            }));
+
+            setAppointments(mappedAppointments);
+            setError(null);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Error al cargar citas');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const filteredAppointments = useMemo(() => {
         return appointments
@@ -40,11 +94,16 @@ export default function AdminAppointmentsPage() {
             .filter(cita => !dateTo || cita.date <= dateTo)
             .filter(cita => doctorFilter === 'Todos' || cita.doctorName === doctorFilter)
             .filter(cita => statusFilter === 'Todos' || cita.status === statusFilter)
-            .filter(cita => 
+            .filter(cita =>
                 cita.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 cita.rut.includes(searchTerm)
             );
     }, [appointments, searchTerm, dateFrom, dateTo, doctorFilter, statusFilter]);
+
+    const uniqueDoctors = useMemo(() => {
+        const doctors = new Set(appointments.map(apt => apt.doctorName));
+        return ['Todos', ...Array.from(doctors)];
+    }, [appointments]);
 
     const handleView = (id: string) => {
         console.log(`Viendo detalle ${id}`);
@@ -53,7 +112,7 @@ export default function AdminAppointmentsPage() {
     
     const handleEdit = (id: string) => {
         console.log(`Editando ${id}`);
-        alert('Modal de Edición (aún no implementado)');
+        toast('Modal de Edición (aún no implementado)');
     };
 
     const handleCancel = (id: string) => {
@@ -61,22 +120,23 @@ export default function AdminAppointmentsPage() {
         setIsCancelModalOpen(true);
     };
 
-    const onConfirmCancel = (reason: string) => {
-        console.log(`Cancelando ${selectedAppointmentId} por: ${reason}`);
-        setAppointments(prev => 
-            prev.map(cita => 
-                cita.id === selectedAppointmentId 
-                ? { ...cita, status: 'Cancelada' } 
-                : cita
-            )
-        );
-        setIsCancelModalOpen(false);
-        setSelectedAppointmentId(null);
+    const onConfirmCancel = async (reason: string) => {
+        if (!selectedAppointmentId) return;
+
+        try {
+            await appointmentService.cancelAppointment(selectedAppointmentId, reason);
+            // Refresh appointments after canceling
+            await fetchAppointments();
+            setIsCancelModalOpen(false);
+            setSelectedAppointmentId(null);
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : 'Error al cancelar cita');
+        }
     };
 
     const handleExport = () => {
         console.log("Exportando reportes...", filteredAppointments);
-        alert("Simulando exportación de reportes...");
+        toast('Simulando exportación de reportes...');
     };
 
     return (
@@ -128,7 +188,7 @@ export default function AdminAppointmentsPage() {
                             onChange={(e) => setDoctorFilter(e.target.value)}
                             className="w-full p-2 mt-1 border border-gray-300 rounded-lg text-sm"
                         >
-                            {MOCK_DOCTORS.map(d => <option key={d} value={d}>{d}</option>)}
+                            {uniqueDoctors.map(d => <option key={d} value={d}>{d}</option>)}
                         </select>
                     </div>
                     <div className="flex flex-col">
@@ -158,10 +218,14 @@ export default function AdminAppointmentsPage() {
                     <div className="col-span-1 text-sm font-semibold text-gray-600 text-right">Acciones</div>
                 </div>
 
-                {filteredAppointments.length > 0 ? (
+                {loading ? (
+                    <p className="text-center text-gray-500 p-8">Cargando citas...</p>
+                ) : error ? (
+                    <p className="text-center text-red-500 p-8">{error}</p>
+                ) : filteredAppointments.length > 0 ? (
                     filteredAppointments.map(cita => (
-                        <AdminAppointmentTableRow 
-                            key={cita.id} 
+                        <AdminAppointmentTableRow
+                            key={cita.id}
                             appointment={cita}
                             onView={handleView}
                             onEdit={handleEdit}

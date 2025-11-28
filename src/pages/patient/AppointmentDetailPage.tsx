@@ -14,7 +14,8 @@ import {
     HiOutlinePhone,
     HiOutlineUser,
     HiOutlineClipboardList,
-    HiOutlineArrowLeft
+    HiOutlineArrowLeft,
+    HiOutlinePencil
 } from 'react-icons/hi';
 
 const formatDate = (dateStr: string) => {
@@ -37,6 +38,8 @@ export default function AppointmentDetailPage() {
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [appointment, setAppointment] = useState<APIAppointment | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isEditingNotes, setIsEditingNotes] = useState(false);
+    const [editedNotes, setEditedNotes] = useState('');
 
     useEffect(() => {
         loadAppointmentDetail();
@@ -76,6 +79,32 @@ export default function AppointmentDetailPage() {
             console.error('Error cancelling appointment:', error);
             toast.error('Error al cancelar la cita');
         }
+    };
+
+    const handleEditNotes = () => {
+        setEditedNotes(appointment?.notes || '');
+        setIsEditingNotes(true);
+    };
+
+    const handleSaveNotes = async () => {
+        if (!id) return;
+
+        try {
+            const updated = await appointmentService.updateAppointment(id, {
+                notes: editedNotes,
+            });
+            setAppointment(updated);
+            setIsEditingNotes(false);
+            toast.success('Notas actualizadas exitosamente');
+        } catch (error) {
+            console.error('Error updating appointment:', error);
+            toast.error('Error al actualizar las notas');
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditingNotes(false);
+        setEditedNotes('');
     };
 
     if (isLoading) {
@@ -175,15 +204,54 @@ export default function AppointmentDetailPage() {
                             <p className="text-xs text-gray-500">Teléfono del centro médico</p>
                         </div>
                     </div>
-                    {appointment.notes && (
-                        <div className="p-4 bg-white rounded-lg border border-gray-200 flex items-center gap-3">
-                            <HiOutlineClipboardList className="text-2xl text-medical-700" />
-                            <div>
-                                <p className="text-sm font-semibold text-gray-900">Notas de la cita</p>
-                                <p className="text-xs text-gray-500">{appointment.notes}</p>
+                    <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3 flex-1">
+                                <HiOutlineClipboardList className="text-2xl text-medical-700 mt-1" />
+                                <div className="flex-1">
+                                    <p className="text-sm font-semibold text-gray-900 mb-2">Notas de la cita</p>
+                                    {isEditingNotes ? (
+                                        <div className="space-y-2">
+                                            <textarea
+                                                value={editedNotes}
+                                                onChange={(e) => setEditedNotes(e.target.value)}
+                                                rows={4}
+                                                placeholder="Escribe tus notas aquí..."
+                                                className="w-full p-2 border border-gray-300 rounded-lg text-sm resize-none"
+                                            />
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={handleSaveNotes}
+                                                    className="px-4 py-2 bg-medical-700 text-white rounded-lg text-sm font-medium hover:bg-medical-800"
+                                                >
+                                                    Guardar
+                                                </button>
+                                                <button
+                                                    onClick={handleCancelEdit}
+                                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-gray-500">
+                                            {appointment.notes || 'Sin notas adicionales'}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
+                            {!isEditingNotes && canCancel && (
+                                <button
+                                    onClick={handleEditNotes}
+                                    className="flex items-center gap-1 px-3 py-1.5 text-medical-700 hover:bg-medical-50 rounded-lg text-sm font-medium transition-colors"
+                                >
+                                    <HiOutlinePencil className="text-lg" />
+                                    Editar
+                                </button>
+                            )}
                         </div>
-                    )}
+                    </div>
                 </div>
 
             </div>

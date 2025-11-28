@@ -1,17 +1,16 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { ScheduleDayRow } from '../../components/schedule/ScheduleDayRow';
 import type { DaySchedule } from '../../components/schedule/ScheduleDayRow';
 import { HiOutlineSave, HiOutlineCalendar, HiOutlinePlusCircle, HiOutlineTemplate } from 'react-icons/hi';
-import { useNavigate } from 'react-router-dom';
 import { SchedulePreviewModal } from '../../components/schedule/SchedulePreviewModal';
+import { appointmentService } from '../../services/appointments/appointment_service';
+import { adminService } from '../../services/admin/adminService';
+import type { Doctor } from '../../types/appointments/appointment_types';
 
-// --- DATOS DE EJEMPLO (MOCK) ---
-const MOCK_DOCTORS = [
-    { id: '1', name: 'Dr. María Rodríguez - Medicina General' },
-    { id: '2', name: 'Dr. Carlos Mendoza - Cardiología' },
-];
+const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
-const MOCK_INITIAL_SCHEDULE: Record<string, DaySchedule> = {
+const DEFAULT_SCHEDULE: Record<string, DaySchedule> = {
     'Lunes': { isActive: true, startTime: '08:00', endTime: '17:00', breakTime: '12:00-13:00', slotDuration: 30 },
     'Martes': { isActive: true, startTime: '08:00', endTime: '17:00', breakTime: '12:00-13:00', slotDuration: 30 },
     'Miércoles': { isActive: true, startTime: '08:00', endTime: '17:00', breakTime: '12:00-13:00', slotDuration: 30 },
@@ -22,10 +21,61 @@ const MOCK_INITIAL_SCHEDULE: Record<string, DaySchedule> = {
 };
 
 export default function ScheduleManagementPage() {
-    const [selectedDoctor, setSelectedDoctor] = useState(MOCK_DOCTORS[0].id);
-    const [scheduleData, setScheduleData] = useState(MOCK_INITIAL_SCHEDULE);
+    const [doctors, setDoctors] = useState<Doctor[]>([]);
+    const [selectedDoctor, setSelectedDoctor] = useState('');
+    const [scheduleData, setScheduleData] = useState(DEFAULT_SCHEDULE);
     const [isSaving, setIsSaving] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+
+    // Load doctors on mount
+    useEffect(() => {
+        const fetchDoctors = async () => {
+            try {
+                setLoading(true);
+                const data = await appointmentService.getDoctors();
+                setDoctors(data);
+                if (data.length > 0) {
+                    setSelectedDoctor(data[0].id);
+                }
+            } catch (err) {
+                console.error('Error loading doctors:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDoctors();
+    }, []);
+
+    // Load schedule when doctor changes
+    useEffect(() => {
+        if (!selectedDoctor) return;
+
+        const fetchSchedule = async () => {
+            try {
+                const response = await adminService.getSchedules(selectedDoctor);
+                // Convert backend schedule to UI format
+                const uiSchedule: Record<string, DaySchedule> = { ...DEFAULT_SCHEDULE };
+
+                response.schedules.forEach((schedule: any) => {
+                    const dayName = DAY_NAMES[schedule.dayOfWeek];
+                    uiSchedule[dayName] = {
+                        isActive: schedule.isActive,
+                        startTime: schedule.startTime,
+                        endTime: schedule.endTime,
+                        breakTime: '', // Backend doesn't have breakTime
+                        slotDuration: schedule.slotDuration,
+                    };
+                });
+
+                setScheduleData(uiSchedule);
+            } catch (err) {
+                console.error('Error loading schedule:', err);
+                setScheduleData(DEFAULT_SCHEDULE);
+            }
+        };
+        fetchSchedule();
+    }, [selectedDoctor]);
 
     const handleScheduleChange = (dayName: string, newSchedule: DaySchedule) => {
         setScheduleData(prev => ({
@@ -35,14 +85,32 @@ export default function ScheduleManagementPage() {
     };
 
     const handleSaveChanges = async () => {
+        if (!selectedDoctor) return;
+
         setIsSaving(true);
-        console.log("Guardando cambios:", { doctorId: selectedDoctor, schedule: scheduleData });
-        await new Promise(res => setTimeout(res, 1500));
-        setIsSaving(false);
-        alert('¡Horarios guardados exitosamente!');
+        try {
+            // Convert UI schedule to backend format
+            const backendSchedules = Object.entries(scheduleData).map(([dayName, schedule]) => ({
+                dayOfWeek: DAY_NAMES.indexOf(dayName),
+                startTime: schedule.startTime,
+                endTime: schedule.endTime,
+                slotDuration: schedule.slotDuration,
+                isActive: schedule.isActive,
+            }));
+
+            await adminService.updateSchedules(selectedDoctor, backendSchedules);
+            toast.success('¡Horarios guardados exitosamente!');
+        } catch (err) {
+            toast.error('Error al guardar horarios: ' + (err instanceof Error ? err.message : 'Error desconocido'));
+        } finally {
+            setIsSaving(false);
+        }
     };
 
-    const selectedDoctorName = MOCK_DOCTORS.find(d => d.id === selectedDoctor)?.name || 'Doctor';
+    const selectedDoctorData = doctors.find(d => d.id === selectedDoctor);
+    const selectedDoctorName = selectedDoctorData
+        ? `Dr. ${selectedDoctorData.user.firstName} ${selectedDoctorData.user.lastName} - ${selectedDoctorData.specialty.name}`
+        : 'Doctor';
 
     return (
         <>
@@ -72,10 +140,19 @@ export default function ScheduleManagementPage() {
                         value={selectedDoctor}
                         onChange={(e) => setSelectedDoctor(e.target.value)}
                         className="w-full p-2 mt-2 border border-gray-300 rounded-lg"
+                        disabled={loading || doctors.length === 0}
                     >
-                        {MOCK_DOCTORS.map(doc => (
-                            <option key={doc.id} value={doc.id}>{doc.name}</option>
-                        ))}
+                        {loading ? (
+                            <option>Cargando médicos...</option>
+                        ) : doctors.length === 0 ? (
+                            <option>No hay médicos disponibles</option>
+                        ) : (
+                            doctors.map(doc => (
+                                <option key={doc.id} value={doc.id}>
+                                    Dr. {doc.user.firstName} {doc.user.lastName} - {doc.specialty.name}
+                                </option>
+                            ))
+                        )}
                     </select>
                 </div>
                 <div className="p-4 bg-medical-50 border border-medical-200 rounded-xl">

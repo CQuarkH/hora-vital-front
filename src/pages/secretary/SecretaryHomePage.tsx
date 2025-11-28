@@ -1,46 +1,86 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { TodayAppointmentRow } from '../../components/secretary/TodayAppointmentRow';
 import type { TodayAppointment } from '../../components/secretary/TodayAppointmentRow';
 import type { AppointmentStatus } from '../../components/appointments/AppointmentStatusBadge';
+import { adminService } from '../../services/admin/adminService';
 
-import { 
-    HiOutlineCalendar, 
-    HiOutlinePlus, 
-    HiOutlineUsers, 
+import {
+    HiOutlineCalendar,
+    HiOutlinePlus,
+    HiOutlineUsers,
     HiOutlineSearch,
     HiOutlineAdjustments,
     HiOutlineClipboardList
 } from 'react-icons/hi';
 
-// --- DATOS DE EJEMPLO (MOCK) ---
-const MOCK_TODAY_APPOINTMENTS: TodayAppointment[] = [
-    { id: '1', time: '08:30', patientName: 'Juan Carlos González', appointmentType: 'Control', rut: '12.345.678-9', doctorInfo: 'Dr. María Rodríguez - Medicina General', status: 'Confirmada' },
-    { id: '2', time: '09:00', patientName: 'Ana María Silva', appointmentType: 'Primera Vez', rut: '98.765.432-1', doctorInfo: 'Dr. Carlos Mendoza - Cardiología', status: 'Pendiente' },
-    { id: '3', time: '09:30', patientName: 'Pedro Luis Torres', appointmentType: 'Control', rut: '11.222.333-4', doctorInfo: 'Dr. María Rodríguez - Medicina General', status: 'Confirmada' },
-    { id: '4', time: '10:00', patientName: 'Carmen Rosa López', appointmentType: 'Control', rut: '55.666.777-8', doctorInfo: 'Dra. Ana Silva - Pediatría', status: 'No Asistió' },
-    { id: '5', time: '10:30', patientName: 'Roberto Andrés Muñoz', appointmentType: 'Primera Vez', rut: '22.333.444-5', doctorInfo: 'Dr. Carlos Mendoza - Cardiología', status: 'En Atención' },
-];
-const STATUS_OPTIONS: AppointmentStatus[] = ['Confirmada', 'Pendiente', 'En Atención', 'No Asistió'];
+const STATUS_OPTIONS: AppointmentStatus[] = ['Confirmada', 'Pendiente', 'En Atención', 'No Asistió', 'Completada', 'Cancelada'];
+
+const mapBackendStatusToFrontend = (status: string): AppointmentStatus => {
+    switch (status) {
+        case 'SCHEDULED':
+            return 'Confirmada';
+        case 'COMPLETED':
+            return 'Completada';
+        case 'CANCELLED':
+            return 'Cancelada';
+        case 'NO_SHOW':
+            return 'No Asistió';
+        default:
+            return 'Pendiente';
+    }
+};
 
 export default function SecretaryHomePage() {
     const { user } = useAuth();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<AppointmentStatus | 'Todos'>('Todos');
+    const [appointments, setAppointments] = useState<TodayAppointment[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchTodayAppointments = async () => {
+            try {
+                setLoading(true);
+                const today = new Date().toISOString().split('T')[0];
+                const response = await adminService.getAppointments({ date: today, page: 1, limit: 100 });
+
+                const mappedAppointments: TodayAppointment[] = response.appointments.map((apt: any) => ({
+                    id: apt.id,
+                    time: apt.startTime,
+                    patientName: `${apt.patient.firstName} ${apt.patient.lastName}`,
+                    appointmentType: 'Control' as const,
+                    rut: apt.patient.rut,
+                    doctorInfo: `Dr. ${apt.doctorProfile.user.firstName} ${apt.doctorProfile.user.lastName} - ${apt.specialty.name}`,
+                    status: mapBackendStatusToFrontend(apt.status),
+                }));
+
+                setAppointments(mappedAppointments);
+                setError(null);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Error al cargar citas');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTodayAppointments();
+    }, []);
 
     const filteredAppointments = useMemo(() => {
-        return MOCK_TODAY_APPOINTMENTS
-            .filter(cita => 
+        return appointments
+            .filter(cita =>
                 statusFilter === 'Todos' || cita.status === statusFilter
             )
-            .filter(cita => 
+            .filter(cita =>
                 cita.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 cita.rut.includes(searchTerm) ||
                 cita.doctorInfo.toLowerCase().includes(searchTerm.toLowerCase())
             );
-    }, [searchTerm, statusFilter]);
+    }, [appointments, searchTerm, statusFilter]);
     
     const AdminDashboardCard: React.FC<{ title: string, icon: React.ReactNode, to: string, description?: string }> = ({ title, icon, to, description }) => {
         const navigateLocal = useNavigate();
@@ -131,7 +171,11 @@ export default function SecretaryHomePage() {
                 </div>
 
                 <div className="flex flex-col mt-3 bg-white rounded-lg border border-gray-200">
-                    {filteredAppointments.length > 0 ? (
+                    {loading ? (
+                        <p className="text-center text-gray-500 p-8">Cargando citas...</p>
+                    ) : error ? (
+                        <p className="text-center text-red-500 p-8">{error}</p>
+                    ) : filteredAppointments.length > 0 ? (
                         filteredAppointments.map(cita => (
                             <TodayAppointmentRow key={cita.id} appointment={cita} />
                         ))
