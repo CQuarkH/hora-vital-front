@@ -1,5 +1,42 @@
 import { Given, When, Then } from "@badeball/cypress-cucumber-preprocessor";
 
+export const generateUniqueEmail = (): string => {
+  const timestamp = Date.now();
+  return `user${timestamp}@example.com`;
+};
+
+export const generateUniqueRut = (): string => {
+  // 1. Generar un número base aleatorio entre 5.000.000 y 29.999.999
+  // (Rango realista para personas en Chile)
+  const rutNum = Math.floor(Math.random() * 25000000) + 5000000;
+
+  // 2. Calcular el Dígito Verificador usando Módulo 11
+  let suma = 0;
+  let multiplicador = 2;
+  let aux = rutNum;
+
+  while (aux > 0) {
+    suma += (aux % 10) * multiplicador;
+    aux = Math.floor(aux / 10);
+    multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
+  }
+
+  const resto = suma % 11;
+  const dvCalc = 11 - resto;
+
+  let dv: string;
+  if (dvCalc === 11) dv = "0";
+  else if (dvCalc === 10) dv = "K";
+  else dv = dvCalc.toString();
+
+  // 3. Formatear con puntos y guión
+  const rutStr = rutNum.toString();
+  // Usamos Regex para poner los puntos automáticamente
+  const formattedBody = rutStr.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+  return `${formattedBody}-${dv}`;
+};
+
 // Credenciales reales del seed del backend
 const CREDENTIALS: { [key: string]: { rut: string; password: string } } = {
   paciente: { rut: "33.333.333-3", password: "Password123!" },
@@ -19,10 +56,10 @@ Given("un usuario {string} está autenticado", (role: string) => {
 
   // Login real usando session de Cypress
   cy.login(cred.rut, cred.password);
-  
+
   // Visitar la página principal después del login
   cy.visit("/");
-  
+
   // Verificar que estamos autenticados
   cy.window().then((win) => {
     expect(win.localStorage.getItem("token")).to.exist;
@@ -57,9 +94,11 @@ When("navega a la sección {string}", (section: string) => {
     inicio: "/home",
   };
 
-  const url = sectionMap[section.toLowerCase()] || `/${section.toLowerCase().replace(/ /g, "-")}`;
+  const url =
+    sectionMap[section.toLowerCase()] ||
+    `/${section.toLowerCase().replace(/ /g, "-")}`;
   cy.visit(url);
-  
+
   // Esperar a que la página cargue
   cy.url().should("include", url.split("/").pop());
 });
@@ -71,32 +110,38 @@ When("hace clic en el botón {string}", (buttonText: string) => {
 });
 
 When("hace clic en {string}", (text: string) => {
-  cy.contains(text, { matchCase: false })
-    .should("be.visible")
-    .click();
+  cy.contains(text, { matchCase: false }).should("be.visible").click();
 });
 
 When("escribe {string} en el campo de búsqueda", (text: string) => {
-  cy.get('input[type="search"], input[placeholder*="Buscar"], input[name="search"]')
+  cy.get(
+    'input[type="search"], input[placeholder*="Buscar"], input[name="search"]'
+  )
     .first()
     .should("be.visible")
     .clear()
     .type(text);
 });
 
-When("escribe {string} en el campo {string}", (value: string, fieldName: string) => {
-  cy.get(`input[name="${fieldName}"], input[placeholder*="${fieldName}"]`)
-    .should("be.visible")
-    .clear()
-    .type(value);
-});
+When(
+  "escribe {string} en el campo {string}",
+  (value: string, fieldName: string) => {
+    cy.get(`input[name="${fieldName}"], input[placeholder*="${fieldName}"]`)
+      .should("be.visible")
+      .clear()
+      .type(value);
+  }
+);
 
-When("selecciona el filtro {string} con valor {string}", (filterName: string, value: string) => {
-  cy.get(`select[name="${filterName}"], select`)
-    .filter(`:contains("${filterName}")`)
-    .first()
-    .select(value);
-});
+When(
+  "selecciona el filtro {string} con valor {string}",
+  (filterName: string, value: string) => {
+    cy.get(`select[name="${filterName}"], select`)
+      .filter(`:contains("${filterName}")`)
+      .first()
+      .select(value);
+  }
+);
 
 When("hace clic fuera del panel", () => {
   cy.get("body").click(0, 0);
@@ -124,8 +169,9 @@ Then("debería ser redirigido a la página de {string}", (pageName: string) => {
 });
 
 Then("el campo {string} debería estar deshabilitado", (fieldName: string) => {
-  cy.get(`input[name="${fieldName}"], input[placeholder*="${fieldName}"]`)
-    .should("be.disabled");
+  cy.get(
+    `input[name="${fieldName}"], input[placeholder*="${fieldName}"]`
+  ).should("be.disabled");
 });
 
 Then("debería ver una tabla con {string}", (tableName: string) => {

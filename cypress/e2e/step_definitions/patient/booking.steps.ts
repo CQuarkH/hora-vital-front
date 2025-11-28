@@ -148,11 +148,6 @@ Then("debería ser redirigido a la página de confirmación", () => {
   cy.log("✓ Redirigido a confirmación");
 });
 
-Then("debería ver el mensaje {string}", (message: string) => {
-  cy.get("body", { timeout: 10000 }).should("contain.text", message);
-  cy.log(`✓ Mensaje verificado: ${message}`);
-});
-
 Then(
   "el horario {string} debería estar visible pero deshabilitado",
   (time: string) => {

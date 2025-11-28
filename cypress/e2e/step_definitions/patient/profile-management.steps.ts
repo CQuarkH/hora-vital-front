@@ -99,11 +99,11 @@ Then("debería ver mis datos actualizados en el perfil", () => {
 });
 
 Then("debería ver el nombre original sin cambios", () => {
-  // Verificar que el nombre volvió al valor original (Elías)
+  // Verificar que el nombre volvió al valor original
   cy.contains("label", /Nombres/i)
     .parent()
     .find("input")
-    .should("have.value", "Elías");
+    .should("have.value", "Juan");
 });
 
 // Then("el campo {string} debería estar deshabilitado", (fieldName: string) => {

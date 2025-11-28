@@ -4,43 +4,11 @@ import {
   Then,
   DataTable,
 } from "@badeball/cypress-cucumber-preprocessor";
+import { generateUniqueRut } from "../common/common.steps";
 
 // Variables para compartir entre steps
 let registrationData: Record<string, string> = {};
 let uniqueRut: string = "";
-
-// Generar RUT único para evitar conflictos en tests
-const generateUniqueRut = (): string => {
-  // 1. Generar un número base aleatorio entre 5.000.000 y 29.999.999
-  // (Rango realista para personas en Chile)
-  const rutNum = Math.floor(Math.random() * 25000000) + 5000000;
-
-  // 2. Calcular el Dígito Verificador usando Módulo 11
-  let suma = 0;
-  let multiplicador = 2;
-  let aux = rutNum;
-
-  while (aux > 0) {
-    suma += (aux % 10) * multiplicador;
-    aux = Math.floor(aux / 10);
-    multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
-  }
-
-  const resto = suma % 11;
-  const dvCalc = 11 - resto;
-
-  let dv: string;
-  if (dvCalc === 11) dv = "0";
-  else if (dvCalc === 10) dv = "K";
-  else dv = dvCalc.toString();
-
-  // 3. Formatear con puntos y guión
-  const rutStr = rutNum.toString();
-  // Usamos Regex para poner los puntos automáticamente
-  const formattedBody = rutStr.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-  return `${formattedBody}-${dv}`;
-};
 
 // ============================================
 // REGISTRO (REAL - sin mocks)
@@ -165,4 +133,39 @@ Then("debería ver un error indicando que las contraseñas no coinciden", () => 
   cy.contains(/contraseñas no coinciden|passwords.*match/i).should(
     "be.visible"
   );
+});
+
+Then("debería ver mensajes de error en campos obligatorios", () => {
+  cy.get('input[name="firstName"]')
+    .parent()
+    .contains(/requerido|obligatorio|required|obligatoria/i)
+    .should("be.visible");
+  cy.get('input[name="lastName"]')
+    .parent()
+    .contains(/requerido|obligatorio|required|obligatoria/i)
+    .should("be.visible");
+  cy.get('input[name="rut"]')
+    .parent()
+    .contains(/requerido|obligatorio|required|obligatoria/i)
+    .should("be.visible");
+  cy.get('input[name="birthDate"]')
+    .parent()
+    .contains(/requerido|obligatorio|required|obligatoria/i)
+    .should("be.visible");
+  cy.get('input[name="email"]')
+    .parent()
+    .contains(/requerido|obligatorio|required|obligatoria/i)
+    .should("be.visible");
+  cy.get('input[name="phone"]')
+    .parent()
+    .contains(/requerido|obligatorio|required|obligatoria/i)
+    .should("be.visible");
+  cy.get('input[name="password"]')
+    .parent()
+    .contains(/requerido|obligatorio|required|obligatoria/i)
+    .should("be.visible");
+  cy.get('input[name="confirmPassword"]')
+    .parent()
+    .contains(/requerido|obligatorio|required|repetir/i)
+    .should("be.visible");
 });

@@ -1,10 +1,10 @@
 Feature: Gestión de perfil y preferencias
-  Como usuario autenticado
+  Como paciente registrado en HoraVital
   Quiero poder editar mi información personal
   Para mantener mis datos actualizados
 
   Background:
-    Given que estoy autenticado con RUT "21.600.919-3" y contraseña "HoraVital2024!"
+    Given un usuario "Paciente" está autenticado
 
   Scenario: Editar información del perfil exitosamente
     Given que estoy en la página de perfil
