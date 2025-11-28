@@ -7,6 +7,7 @@ import { formatRUT, formatPhoneNumber } from "../../utils/formatters";
 import { HiOutlineArrowLeft } from "react-icons/hi";
 import { adminService } from "../../services/admin/adminService";
 import { useAuth } from "../../context/AuthContext";
+import { secretaryService } from "../../services/secretary/secretaryService";
 
 interface CreateUserFormValues {
   firstName: string;
@@ -51,17 +52,28 @@ export default function CreateUserPage() {
         admin: "ADMIN" as const,
       };
 
-      await adminService.createUser({
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        password: data.password,
-        rut: data.rut,
-        phone: data.phone,
-        role: roleMap[data.role],
-      });
+      isSecretary
+        ? await secretaryService.createPatient({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            password: data.password,
+            rut: data.rut,
+            phone: data.phone,
+          })
+        : await adminService.createUser({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            password: data.password,
+            rut: data.rut,
+            phone: data.phone,
+            role: roleMap[data.role],
+          });
 
-      toast.success(`Usuario ${data.firstName} ${data.lastName} creado exitosamente`);
+      toast.success(
+        `Usuario ${data.firstName} ${data.lastName} creado exitosamente`
+      );
       navigate("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al crear usuario");

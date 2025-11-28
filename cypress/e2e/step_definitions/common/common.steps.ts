@@ -198,3 +198,17 @@ Then("no debería ser redirigido", () => {
 Then("debería estar en la página {string}", (pagePath: string) => {
   cy.url().should("include", pagePath);
 });
+
+Then("debería ver un mensaje de error sobre email duplicado", () => {
+  // El backend devuelve un error cuando el email ya existe
+  cy.contains(/email|correo|duplicado|en uso/i, { timeout: 5000 }).should(
+    "be.visible"
+  );
+});
+
+Then("debería ver un mensaje de error sobre rut duplicado", () => {
+  // El backend devuelve un error cuando el email ya existe
+  cy.contains(/rut|correo|duplicado|en uso/i, { timeout: 5000 }).should(
+    "be.visible"
+  );
+});

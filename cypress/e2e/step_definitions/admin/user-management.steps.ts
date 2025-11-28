@@ -60,6 +60,21 @@ When("completa el formulario con email duplicado {string}", (email: string) => {
   cy.get('select[name="role"]').select("patient");
 });
 
+When("completa el formulario con rut duplicado {string}", (email: string) => {
+  // Generar datos únicos para evitar conflictos
+  const timestamp = Date.now();
+  const duplicateRut = "33.333.333-3"; // Rut duplicado para la prueba
+  const formattedRut = duplicateRut;
+
+  cy.get('input[name="firstName"]').clear().type("Test");
+  cy.get('input[name="lastName"]').clear().type("Usuario");
+  cy.get('input[name="email"]').clear().type(email); // Email duplicado
+  cy.get('input[name="rut"]').clear().type(formattedRut);
+  cy.get('input[name="phone"]').clear().type("+56912345678");
+  cy.get('input[name="password"]').clear().type("Password123!");
+  cy.get('select[name="role"]').select("patient");
+});
+
 When(
   "hace clic en {string} en la fila del primer usuario de tipo secretario",
   (action: string) => {
@@ -160,13 +175,6 @@ Then("debería estar en la página de creación de usuario", () => {
 Then("debería volver a la página de gestión de usuarios", () => {
   cy.url().should("include", "/home");
   cy.contains("Panel de Administración").should("be.visible");
-});
-
-Then("debería ver un mensaje de error sobre email duplicado", () => {
-  // El backend devuelve un error cuando el email ya existe
-  cy.contains(/email|correo|duplicado|en uso/i, { timeout: 5000 }).should(
-    "be.visible"
-  );
 });
 
 Then("debería ver el modal de edición de usuario", () => {
