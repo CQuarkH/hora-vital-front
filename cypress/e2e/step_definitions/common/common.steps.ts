@@ -86,7 +86,7 @@ When("navega a la sección {string}", (section: string) => {
     "mi perfil": "/profile",
     "mis citas": "/patient/appointments",
     "agendar cita": "/book-appointment",
-    pacientes: "/admin/patients",
+    pacientes: "/admin-patients",
     "gestión de horarios": "/secretary/schedules",
     "administración de citas": "/secretary/appointments",
     "gestión de usuarios": "/admin/users",
@@ -137,7 +137,7 @@ When(
   "selecciona el filtro {string} con valor {string}",
   (filterName: string, value: string) => {
     cy.get(`select[name="${filterName}"], select`)
-      .filter(`:contains("${filterName}")`)
+      .filter(`:contains("${filterName.toLowerCase()}")`)
       .first()
       .select(value);
   }
