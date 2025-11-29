@@ -1,3 +1,4 @@
+import { useAuth } from "../../context/AuthContext";
 import {
   Specialty,
   Doctor,
@@ -66,8 +67,16 @@ class AppointmentService {
     return data.availableSlots;
   }
 
-  async getAppointmentById(id: string): Promise<Appointment> {
-    const allAppointments = await this.getMyAppointments();
+  async getAppointmentById(
+    id: string,
+    user?: { role: string }
+  ): Promise<Appointment> {
+    const role = user?.role;
+    const allAppointments =
+      (role && role === "secretary") || role === "admin"
+        ? await this.getAppointmentsAsAdmin()
+        : await this.getMyAppointments();
+    console.log(`Total appointments fetched: ${allAppointments.length}`);
     const appointment = allAppointments.find((appt) => appt.id === id);
     if (!appointment) throw new Error("Cita no encontrada");
     return appointment;
@@ -86,6 +95,30 @@ class AppointmentService {
     }
     const result = await response.json();
     return result.appointment;
+  }
+
+  async getAppointmentsAsAdmin(
+    patientName?: string,
+    specialtyId?: string,
+    status?: string
+  ): Promise<Appointment[]> {
+    const params = new URLSearchParams();
+    if (patientName) params.append("patientName", patientName);
+    if (specialtyId) params.append("specialtyId", specialtyId);
+
+    if (status && status !== "Todos")
+      params.append("status", status.toUpperCase());
+
+    const response = await fetch(
+      `${API_URL}/api/admin/appointments?${params.toString()}`,
+      {
+        headers: this.getHeaders(),
+      }
+    );
+
+    if (!response.ok) throw new Error("Error al obtener citas");
+    const data = await response.json();
+    return data.appointments;
   }
 
   async getMyAppointments(status?: string): Promise<Appointment[]> {

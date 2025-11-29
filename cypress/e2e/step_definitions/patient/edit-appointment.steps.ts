@@ -8,7 +8,7 @@ import { Given, When, Then } from "@badeball/cypress-cucumber-preprocessor";
 const UI = {
   SEARCH_INPUT: 'input[placeholder*="Buscar"]',
   APPOINTMENT_CARD:
-    "div[class='flex items-center gap-4 p-4 bg-medical-50 border border-medical-200 rounded-xl shadow-sm w-full']", // Soporta Grid y Tabla
+    "div[class='flex items-center gap-4 p-4 bg-medical-50 border border-medical-200 rounded-xl shadow-sm w-full'], div[class='grid grid-cols-6 gap-4 items-center p-4 border-b border-gray-200 hover:bg-gray-50']", // Soporta Grid y Tabla
   CALENDAR_DAY: ".react-calendar__tile, button.day-slot, button", // Ajustar según tu librería de calendario
   TIME_SLOT: "button.time-slot, button:not(:disabled)", // Botones de hora
   SUBMIT_BTN:

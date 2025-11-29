@@ -88,7 +88,7 @@ When("navega a la sección {string}", (section: string) => {
     "agendar cita": "/book-appointment",
     pacientes: "/admin-patients",
     "gestión de horarios": "/secretary/schedules",
-    "administración de citas": "/secretary/appointments",
+    "administración de citas": "/admin-appointments",
     "gestión de usuarios": "/admin/users",
     home: "/home",
     inicio: "/home",

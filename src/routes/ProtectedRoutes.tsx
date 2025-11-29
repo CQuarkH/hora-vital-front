@@ -33,7 +33,7 @@ export const ProtectedRoute = ({
 
   // Si se especifican roles permitidos, verificar
   if (allowedRoles && allowedRoles.length > 0 && !hasAnyRole(allowedRoles)) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   return <>{children}</>;

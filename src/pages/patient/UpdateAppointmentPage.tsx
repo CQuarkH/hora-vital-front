@@ -22,6 +22,7 @@ import type {
   Specialty,
   Doctor,
 } from "../../types/appointments/appointment_types";
+import { useAuth } from "../../context/AuthContext";
 
 interface UpdateAppointmentDTO {
   specialtyId: string;
@@ -44,6 +45,7 @@ const formatDateForDisplay = (date: Date | null): string | null => {
 
 export default function EditAppointmentPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { id: appointmentId } = useParams<{ id: string }>();
 
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
@@ -64,7 +66,7 @@ export default function EditAppointmentPage() {
     const fetchInitialData = async () => {
       if (!appointmentId) {
         toast.error("ID de cita no válido");
-        navigate("/appointments");
+        navigate("/");
         return;
       }
 
@@ -72,7 +74,9 @@ export default function EditAppointmentPage() {
       try {
         const [specialtiesData, appointmentData] = await Promise.all([
           appointmentService.getSpecialties(),
-          appointmentService.getAppointmentById(appointmentId),
+          appointmentService.getAppointmentById(appointmentId, {
+            role: user!.role,
+          }),
         ]);
 
         setSpecialties(specialtiesData);
@@ -86,7 +90,7 @@ export default function EditAppointmentPage() {
       } catch (error) {
         console.error("Error cargando datos iniciales:", error);
         toast.error("No se pudo cargar la información de la cita");
-        navigate("/appointments");
+        navigate("/home");
       } finally {
         setIsLoadingInitialData(false);
       }
