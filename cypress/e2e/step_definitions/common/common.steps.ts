@@ -84,7 +84,7 @@ Given(
 When("navega a la sección {string}", (section: string) => {
   const sectionMap: { [key: string]: string } = {
     "mi perfil": "/profile",
-    "mis citas": "/patient/appointments",
+    "mis citas": "/appointments",
     "agendar cita": "/book-appointment",
     pacientes: "/admin-patients",
     "gestión de horarios": "/secretary/schedules",
