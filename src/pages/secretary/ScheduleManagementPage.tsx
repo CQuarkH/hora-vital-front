@@ -201,6 +201,37 @@ export default function ScheduleManagementPage() {
   const handleBlockPeriod = async () => {
     if (!selectedDoctor) return;
 
+    // --- NUEVA VALIDACIÓN DE FRONTEND ---
+    // Verificamos colisiones con las citas ya cargadas en memoria (agenda.appointments)
+
+    if (agenda && agenda.appointments.length > 0) {
+      // 1. Crear objetos Date para el rango de bloqueo
+      const blockStart = new Date(
+        `${blockModal.startDate}T${blockModal.startTime}`
+      );
+      const blockEnd = new Date(`${blockModal.endDate}T${blockModal.endTime}`);
+
+      // 2. Buscar si alguna cita existente choca con este rango
+      const hasFrontendConflict = agenda.appointments.some((appt) => {
+        // Obtenemos la fecha de la cita (asumiendo formato ISO "YYYY-MM-DD...")
+        const apptDateStr = appt.appointmentDate.split("T")[0];
+
+        // Creamos objetos Date para el inicio y fin de la cita
+        const apptStart = new Date(`${apptDateStr}T${appt.startTime}`);
+        const apptEnd = new Date(`${apptDateStr}T${appt.endTime}`);
+
+        // Lógica de colisión: (InicioBloqueo < FinCita) Y (FinBloqueo > InicioCita)
+        return blockStart < apptEnd && blockEnd > apptStart;
+      });
+
+      // 3. Si hay conflicto, mostramos la alerta y detenemos la función
+      if (hasFrontendConflict) {
+        setBlockModal((prev) => ({ ...prev, hasConflictError: true }));
+        return; // <--- Importante: No llamamos al backend
+      }
+    }
+    // -------------------------------------
+
     const blockData: BlockPeriodData = {
       doctorProfileId: selectedDoctor,
       startDateTime: `${blockModal.startDate}T${blockModal.startTime}:00`,
@@ -229,6 +260,7 @@ export default function ScheduleManagementPage() {
         hasConflictError: false,
       });
     } catch (err: unknown) {
+      // Mantenemos el catch por seguridad en caso de otros errores del backend
       const error = err as { message?: string };
       if (
         error.message?.includes("citas programadas") ||
