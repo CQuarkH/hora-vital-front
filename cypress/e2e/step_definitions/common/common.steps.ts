@@ -86,6 +86,7 @@ When("navega a la sección {string}", (section: string) => {
     "mi perfil": "/profile",
     "mis citas": "/appointments",
     "agendar cita": "/book-appointment",
+    "gestión de agenda": "/schedule-management",
     pacientes: "/admin-patients",
     "gestión de horarios": "/secretary/schedules",
     "administración de citas": "/admin-appointments",
@@ -103,9 +104,13 @@ When("navega a la sección {string}", (section: string) => {
   cy.url().should("include", url.split("/").pop());
 });
 
-When("hace clic en el botón {string}", (buttonText: string) => {
-  cy.contains("button", buttonText, { matchCase: false })
+When("hace clic en el botón {string}", (text: string) => {
+  // Buscamos botones o enlaces que contengan el texto y sean visibles
+  cy.get("button, a, [role='button']")
+    .filter(`:contains("${text}")`)
     .should("be.visible")
+    // Seleccionamos el ÚLTIMO encontrado (usualmente el que está en el modal/overlay)
+    .last()
     .click();
 });
 
