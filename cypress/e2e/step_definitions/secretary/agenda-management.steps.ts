@@ -72,8 +72,38 @@ Given("existen citas programadas para el médico seleccionado", () => {
 });
 
 Given("existe un período bloqueado para el médico seleccionado", () => {
-  // El backend debe tener un período bloqueado configurado
-  // o el test debe crearlo antes via API
+  const dateStr = mondayFromToday(2);
+
+  // Login como secretaria para crear bloqueo
+  cy.apiLogin("22.222.222-2", "Password123!").then(({ token }) => {
+    // Obtener primer doctor
+    cy.request({
+      method: "GET",
+      url: `${API_URL}/api/medical/doctors`,
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((response) => {
+      const doctors = response.body;
+      if (doctors.length > 0) {
+        const doctor = doctors[0];
+
+        // Crear bloqueo como secretaria
+        cy.request({
+          method: "POST",
+          url: `${API_URL}/api/secretary/blocks`,
+          headers: { Authorization: `Bearer ${token}` },
+          body: {
+            doctorProfileId: doctor.id,
+            startDateTime: `${dateStr}T14:00:00Z`,
+            endDateTime: `${dateStr}T15:00:00Z`,
+            reason: "Bloqueo de prueba E2E",
+          },
+          failOnStatusCode: false,
+        });
+      }
+    });
+  });
+
+  cy.wait(500); // Esperar a que el backend procese el bloqueo
 });
 
 Given(
@@ -85,7 +115,38 @@ Given(
 );
 
 Given("existen períodos bloqueados para el médico seleccionado", () => {
-  // El backend debe tener períodos bloqueados
+  const dateStr = mondayFromToday(2);
+
+  // Login como secretaria para crear bloqueo
+  cy.apiLogin("22.222.222-2", "Password123!").then(({ token }) => {
+    // Obtener primer doctor
+    cy.request({
+      method: "GET",
+      url: `${API_URL}/api/medical/doctors`,
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((response) => {
+      const doctors = response.body;
+      if (doctors.length > 0) {
+        const doctor = doctors[0];
+
+        // Crear bloqueo como secretaria
+        cy.request({
+          method: "POST",
+          url: `${API_URL}/api/secretary/blocks`,
+          headers: { Authorization: `Bearer ${token}` },
+          body: {
+            doctorProfileId: doctor.id,
+            startDateTime: `${dateStr}T14:00:00Z`,
+            endDateTime: `${dateStr}T15:00:00Z`,
+            reason: "Bloqueo de prueba E2E",
+          },
+          failOnStatusCode: false,
+        });
+      }
+    });
+  });
+
+  cy.wait(500); // Esperar a que el backend procese los bloqueos
 });
 
 Given("no hay datos de agenda configurados para el médico", () => {

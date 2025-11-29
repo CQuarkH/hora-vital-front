@@ -165,7 +165,7 @@ export default function ScheduleManagementPage() {
         endTime: dayScheduleEdit.endTime,
         slotDuration: dayScheduleEdit.slotDuration,
         isActive: dayScheduleEdit.isActive,
-        dayOfWeek: new Date(selectedDate).getDay(),
+        dayOfWeek: new Date(selectedDate).getDay() + 1,
       });
 
       toast.success("¡Horario actualizado exitosamente!");
