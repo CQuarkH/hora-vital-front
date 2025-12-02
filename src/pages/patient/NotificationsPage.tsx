@@ -168,7 +168,7 @@ export default function NotificationsPage() {
             disabled={unreadCount === 0}
             className="px-4 py-2 bg-white border border-medical-300 text-medical-800 rounded-lg font-medium text-sm hover:bg-medical-50 disabled:opacity-50"
           >
-            Marcar Todas como LeÃ­das
+            Marcar Todas como Leídas
           </button>
         </div>
       </div>

@@ -93,6 +93,7 @@ When("navega a la sección {string}", (section: string) => {
     "gestión de usuarios": "/admin/users",
     home: "/home",
     inicio: "/home",
+    notificaciones: "/notifications",
   };
 
   const url =
