@@ -82,7 +82,7 @@ describe('UserService', () => {
 
             expect(mockFetch).toHaveBeenCalledWith(
 
-                expect.stringContaining('/api/profile'),
+                expect.stringContaining('/api/users/profile'),
 
                 expect.objectContaining({
 
