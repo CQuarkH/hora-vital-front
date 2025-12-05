@@ -48,6 +48,7 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
 
   return (
     <div
+      data-testid="notification-card"
       className={clsx(
         "flex items-start gap-4 p-5 rounded-xl border w-full",
         isRead ? "bg-white border-gray-200" : "bg-medical-50 border-medical-200"

@@ -1,11 +1,11 @@
 import React from 'react';
 import { PatientStatusBadge } from './PatientStatusBadge';
-import type { PatientStatus} from './PatientStatusBadge';
-import { 
-    HiOutlineCalendar, 
-    HiOutlineDocumentText, 
-    HiOutlinePencil, 
-    HiOutlineUser 
+import type { PatientStatus } from './PatientStatusBadge';
+import {
+    HiOutlineCalendar,
+    HiOutlineDocumentText,
+    HiOutlinePencil,
+    HiOutlineUser
 } from 'react-icons/hi';
 
 export interface PatientData {
@@ -26,18 +26,18 @@ interface PatientListCardProps {
 }
 
 export const PatientListCard: React.FC<PatientListCardProps> = ({ patient }) => {
-    
+
     const initials = patient.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
     return (
-        <div className="flex items-center w-full p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-            
+        <div data-testid="patient-card" className="flex items-center w-full p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+
             <div className="w-10 h-10 rounded-full bg-medical-600 flex items-center justify-center text-white font-bold flex-shrink-0">
                 {initials}
             </div>
 
             <div className="flex-1 ml-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm">
-                
+
                 <div className="flex items-center gap-2">
                     <h4 className="font-semibold text-gray-900">{patient.name}</h4>
                     <PatientStatusBadge status={patient.status} />

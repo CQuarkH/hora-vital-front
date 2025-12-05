@@ -29,6 +29,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) => {
+    const id = React.useId();
+    const inputId = props.id || id;
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (formatter) {
         const formatted = formatter(e.target.value);
@@ -43,6 +46,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <div className="flex flex-col gap-2 items-start w-full">
         {label && (
           <label
+            htmlFor={inputId}
             className={clsx(
               "text-sm font-medium",
               disabled ? "opacity-70" : "opacity-100"
@@ -53,6 +57,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
 
         <input
+          id={inputId}
           ref={ref}
           name={label}
           type={type}

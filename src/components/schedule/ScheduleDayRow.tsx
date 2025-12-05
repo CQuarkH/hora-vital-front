@@ -20,7 +20,7 @@ interface ScheduleDayRowProps {
 const durationOptions = [15, 20, 30, 45, 60];
 
 export const ScheduleDayRow: React.FC<ScheduleDayRowProps> = ({ dayName, initialSchedule, onChange }) => {
-    
+
     const [schedule, setSchedule] = useState<DaySchedule>(initialSchedule);
 
     useEffect(() => {
@@ -34,7 +34,7 @@ export const ScheduleDayRow: React.FC<ScheduleDayRowProps> = ({ dayName, initial
     };
 
     return (
-        <div className={clsx(
+        <div data-testid="schedule-day" className={clsx(
             "p-4 rounded-lg",
             schedule.isActive ? "bg-white border border-gray-200" : "bg-gray-100"
         )}>
@@ -91,7 +91,7 @@ export const ScheduleDayRow: React.FC<ScheduleDayRowProps> = ({ dayName, initial
                         ))}
                     </select>
                 </div>
-                
+
                 <div className="flex justify-end items-center pt-5">
                     <ToggleSwitch
                         enabled={schedule.isActive}

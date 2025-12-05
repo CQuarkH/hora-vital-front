@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { HiOutlineCalendar, HiOutlineClock } from 'react-icons/hi';
+import { HiOutlineClock } from 'react-icons/hi';
 import clsx from 'clsx';
 
 interface AppointmentPreviewProps {
@@ -30,6 +30,7 @@ export const AppointmentPreview: React.FC<AppointmentPreviewProps> = ({
 
     return (
         <div
+            data-testid="appointment-preview"
             className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm"
         >
             <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-medical-50 border border-medical-200">

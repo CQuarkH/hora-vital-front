@@ -27,7 +27,7 @@ export const AdminAppointmentTableRow: React.FC<AdminAppointmentRowProps> = ({
   onView,
 }) => {
   return (
-    <div className="grid grid-cols-6 gap-4 items-center p-4 border-b border-gray-200 hover:bg-gray-50">
+    <div data-testid="appointment-row" className="grid grid-cols-6 gap-4 items-center p-4 border-b border-gray-200 hover:bg-gray-50">
       <div className="col-span-1">
         <p className="font-semibold text-gray-900">{appointment.patientName}</p>
         <p className="text-sm text-gray-500">RUT: {appointment.rut}</p>

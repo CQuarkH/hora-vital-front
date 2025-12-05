@@ -20,8 +20,8 @@ interface TodayAppointmentRowProps {
 
 export const TodayAppointmentRow: React.FC<TodayAppointmentRowProps> = ({ appointment }) => {
     return (
-        <div className="grid grid-cols-10 gap-4 items-center p-4 bg-white border-b border-gray-200">
-            
+        <div data-testid="today-appointment" className="grid grid-cols-10 gap-4 items-center p-4 bg-white border-b border-gray-200">
+
             <div className="col-span-1">
                 <span className="font-semibold text-medical-800">{appointment.time}</span>
             </div>
