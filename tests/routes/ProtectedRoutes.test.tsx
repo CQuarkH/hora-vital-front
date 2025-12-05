@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { ProtectedRoute } from '../../src/routes/ProtectedRoutes';
 import { useAuth } from '../../src/context/AuthContext';
 
@@ -143,7 +143,7 @@ describe('ProtectedRoute', () => {
         it('debe renderizar si el usuario tiene un rol permitido', () => {
             mockUseAuth.mockReturnValue({
                 isAuthenticated: () => true,
-                hasAnyRole: (roles) => roles.includes('admin'),
+                hasAnyRole: (roles: string[]) => roles.includes('admin'),
             } as any);
 
             render(
@@ -157,7 +157,7 @@ describe('ProtectedRoute', () => {
             expect(screen.getByText('Admin Content')).toBeInTheDocument();
         });
 
-        it('debe redirigir a /unauthorized si el usuario no tiene rol permitido', () => {
+        it('debe redirigir a /home si el usuario no tiene rol permitido', async () => {
             mockUseAuth.mockReturnValue({
                 isAuthenticated: () => true,
                 hasAnyRole: () => false,
@@ -174,12 +174,12 @@ describe('ProtectedRoute', () => {
                                 </ProtectedRoute>
                             }
                         />
-                        <Route path="/unauthorized" element={<div>Unauthorized</div>} />
+                        <Route path="/home" element={<div>Home Page</div>} />
                     </Routes>
                 </MemoryRouter>
             );
 
-            expect(screen.getByText('Unauthorized')).toBeInTheDocument();
+            expect(await screen.findByText('Home Page', {}, { timeout: 3000 })).toBeInTheDocument();
             expect(screen.queryByText('Admin Content')).not.toBeInTheDocument();
         });
 
@@ -220,7 +220,7 @@ describe('ProtectedRoute', () => {
         it('debe verificar múltiples roles correctamente', () => {
             mockUseAuth.mockReturnValue({
                 isAuthenticated: () => true,
-                hasAnyRole: (roles) => roles.includes('patient'),
+                hasAnyRole: (roles: string[]) => roles.includes('patient'),
             } as any);
 
             render(
@@ -265,7 +265,7 @@ describe('ProtectedRoute', () => {
             expect(screen.queryByText('Admin Content')).not.toBeInTheDocument();
         });
 
-        it('debe verificar roles después de autenticación', () => {
+        it('debe verificar roles después de autenticación', async () => {
             mockUseAuth.mockReturnValue({
                 isAuthenticated: () => true,
                 hasAnyRole: () => false,
@@ -283,13 +283,13 @@ describe('ProtectedRoute', () => {
                             }
                         />
                         <Route path="/login" element={<div>Login Page</div>} />
-                        <Route path="/unauthorized" element={<div>Unauthorized</div>} />
+                        <Route path="/home" element={<div>Home Page</div>} />
                     </Routes>
                 </MemoryRouter>
             );
 
-            // Debe ir a unauthorized porque está autenticado pero no tiene el rol
-            expect(screen.getByText('Unauthorized')).toBeInTheDocument();
+            // Debe ir a home porque está autenticado pero no tiene el rol
+            expect(await screen.findByText('Home Page', {}, { timeout: 3000 })).toBeInTheDocument();
             expect(screen.queryByText('Login Page')).not.toBeInTheDocument();
             expect(screen.queryByText('Admin Content')).not.toBeInTheDocument();
         });
@@ -297,7 +297,7 @@ describe('ProtectedRoute', () => {
         it('debe permitir acceso si está autenticado y tiene rol correcto', () => {
             mockUseAuth.mockReturnValue({
                 isAuthenticated: () => true,
-                hasAnyRole: (roles) => roles.includes('admin'),
+                hasAnyRole: (roles: string[]) => roles.includes('admin'),
             } as any);
 
             render(
@@ -356,6 +356,3 @@ describe('ProtectedRoute', () => {
         });
     });
 });
-
-// Necesitamos importar useLocation para el test
-import { useLocation } from 'react-router-dom';
