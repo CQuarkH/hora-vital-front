@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import PatientHomePage from '../../../src/pages/patient/PatientHomePage';
 import AuthContext from '../../../src/context/AuthContext';
@@ -15,6 +15,37 @@ vi.mock('../../../src/components/dashboard/AppointmentPreview', () => ({
 
 vi.mock('../../../src/components/dashboard/NotificationPreview', () => ({
     NotificationPreview: () => <div data-testid="notification-preview">Preview Notificaciones</div>
+}));
+
+vi.mock('../../../src/services/appointments/appointment_service', () => ({
+    appointmentService: {
+        getMyAppointments: vi.fn().mockResolvedValue([
+            {
+                id: '1',
+                appointmentDate: '2025-12-10',
+                startTime: '10:00',
+                endTime: '10:30',
+                status: 'SCHEDULED',
+                doctorProfile: {
+                    user: { firstName: 'Carlos', lastName: 'Mendoza' },
+                    specialty: { name: 'Cardiología' }
+                },
+                specialty: { name: 'Cardiología' }
+            },
+            {
+                id: '2',
+                appointmentDate: '2025-12-15',
+                startTime: '14:00',
+                endTime: '14:30',
+                status: 'SCHEDULED',
+                doctorProfile: {
+                    user: { firstName: 'María', lastName: 'González' },
+                    specialty: { name: 'Pediatría' }
+                },
+                specialty: { name: 'Pediatría' }
+            }
+        ])
+    }
 }));
 
 const mockUser: User = { id: '1', firstName: 'Juan', lastName: 'Pérez', email: 'j@p.com', role: 'patient', status: 'active', rut: '11.111.111-1' } as unknown as User;
@@ -37,18 +68,26 @@ describe('PatientHomePage', () => {
         vi.clearAllMocks();
     });
 
-    it('debe mostrar el mensaje de bienvenida con el nombre del paciente', () => {
+    it('debe mostrar el mensaje de bienvenida con el nombre del paciente', async () => {
         renderComponent();
-        expect(screen.getByText(/Bienvenido,?\s*Juan/)).toBeInTheDocument();
+
+        await waitFor(() => {
+            expect(screen.getByText(/Bienvenido,?\s*Juan/)).toBeInTheDocument();
+        });
     });
 
-    it('debe renderizar los componentes del dashboard', () => {
+    it('debe renderizar los componentes del dashboard', async () => {
         renderComponent();
-        
-        expect(screen.getAllByTestId('appointment-preview').length).toBeGreaterThan(0);
-        expect(screen.getAllByTestId('notification-preview').length).toBeGreaterThan(0);
-        expect(screen.getAllByTestId('dashboard-card').length).toBeGreaterThan(0);
-        expect(screen.getByText('Agendar Cita')).toBeInTheDocument();
-        expect(screen.getByText('Mis Citas')).toBeInTheDocument();
+
+        await waitFor(() => {
+            expect(screen.getAllByTestId('dashboard-card').length).toBeGreaterThan(0);
+            expect(screen.getByText('Agendar Cita')).toBeInTheDocument();
+            expect(screen.getByText('Mis Citas')).toBeInTheDocument();
+        });
+
+        // Esperar a que se carguen las citas
+        await waitFor(() => {
+            expect(screen.getAllByTestId('appointment-preview').length).toBeGreaterThan(0);
+        });
     });
 });

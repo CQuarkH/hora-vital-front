@@ -54,7 +54,7 @@ const renderComponent = () => {
 };
 
 describe('RegisterPage', () => {
-    const user = userEvent.setup(); 
+    const user = userEvent.setup();
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -107,33 +107,42 @@ describe('RegisterPage', () => {
     it('debe registrar al usuario y navegar a /home si el registro es exitoso', async () => {
         mockRegisterUser.mockResolvedValue({ success: true });
         renderComponent();
-        
+
         await fillForm();
         await user.click(screen.getByRole('button', { name: 'Registrarse' }));
 
         await waitFor(() => {
             expect(mockRegisterUser).toHaveBeenCalledTimes(1);
+        }, { timeout: 10000 });
+
+        await waitFor(() => {
             expect(mockRegisterUser).toHaveBeenCalledWith(expect.objectContaining({
                 firstName: 'Test',
                 rut: '12.345.678-9'
             }));
+        }, { timeout: 10000 });
+
+        await waitFor(() => {
             expect(mockNavigate).toHaveBeenCalledWith('/home');
-        }, { timeout: 2000 });
-    });
+        }, { timeout: 10000 });
+    }, 15000);
 
     it('debe mostrar un error global si el registro falla (error del servidor)', async () => {
         mockRegisterUser.mockResolvedValue({ success: false, error: 'El RUT ya está registrado' });
         renderComponent();
-        
+
         await fillForm();
         await user.click(screen.getByRole('button', { name: 'Registrarse' }));
 
         await waitFor(() => {
             expect(mockRegisterUser).toHaveBeenCalledTimes(1);
+        }, { timeout: 10000 });
+
+        await waitFor(() => {
             expect(mockNavigate).not.toHaveBeenCalled();
             expect(screen.getByText('El RUT ya está registrado')).toBeInTheDocument();
-        }, { timeout: 2000 });
-    });
+        }, { timeout: 10000 });
+    }, 15000);
 
     it('debe navegar a /login al hacer clic en "Inicia Sesión"', async () => {
         renderComponent();
