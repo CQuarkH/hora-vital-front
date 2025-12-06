@@ -31,12 +31,12 @@ Feature: Agendamiento de Cita Médica
   Scenario: Visualización de horarios disponibles según doctor
     When el paciente selecciona la especialidad "Pediatría"
     And el paciente selecciona el médico "Ana Silva"
-    And selecciona el día "17" del próximo mes en el calendario
+    And selecciona el día "19" del próximo mes en el calendario
     Then el sistema muestra los horarios disponibles para ese día
 
   @validation
   Scenario: Validación - Intento de agendar sin seleccionar horario
     When el paciente selecciona la especialidad "Medicina General"
     And el paciente selecciona el médico "María Rodríguez"
-    And selecciona el día "18" del próximo mes en el calendario
+    And selecciona el día "20" del próximo mes en el calendario
     Then el botón "Confirmar Agendamiento" no debería ser clickeable

@@ -4,6 +4,7 @@ import { addCucumberPreprocessorPlugin } from "@badeball/cypress-cucumber-prepro
 import { createEsbuildPlugin } from "@badeball/cypress-cucumber-preprocessor/esbuild";
 
 export default defineConfig({
+  projectId: '8wvc8e',
   e2e: {
     baseUrl: "http://localhost:5173",
     specPattern: "cypress/e2e/features/**/*.feature",
